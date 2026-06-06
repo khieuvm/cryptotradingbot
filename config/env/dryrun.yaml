@@ -1,0 +1,22 @@
+# Dry-run environment overlay
+dry_run: true
+dry_run_wallet: 500
+stake_amount: 50
+max_stake_amount: 100
+
+risk:
+  max_open_trades: 6
+
+api_server:
+  enabled: true
+  port: 8080
+  username: admin
+  password: admin
+
+telegram:
+  enabled: true
+  token: ""
+  chat_id: ""
+
+logging:
+  level: INFO

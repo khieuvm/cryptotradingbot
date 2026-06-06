@@ -1,0 +1,1 @@
+"""Shared indicator library."""

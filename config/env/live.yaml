@@ -1,0 +1,40 @@
+# Live trading environment overlay
+dry_run: false
+stake_amount: 50
+max_stake_amount: 150
+
+# Only grade A/B strategies trade live
+active_strategies:
+  - regime_adaptive
+
+risk:
+  max_open_trades: 4
+  max_portfolio_heat: 0.12
+  circuit_breaker:
+    max_daily_drawdown: 0.06
+    max_weekly_drawdown: 0.10
+    consecutive_losses_halt: 4
+    cooldown_hours: 6
+
+leverage:
+  default: 3
+  max_allowed: 4
+
+api_server:
+  enabled: true
+  port: 8080
+  username: admin
+  password: ""
+
+telegram:
+  enabled: true
+  token: ""
+  chat_id: ""
+
+# API credentials (set via environment variables or secrets manager)
+api_key: ""
+api_secret: ""
+api_password: ""
+
+logging:
+  level: WARNING
