@@ -1,0 +1,33 @@
+{
+  "strategy_name": "ComboG_OKX_v3",
+  "params": {
+    "roi": {
+      "0": 0.1
+    },
+    "stoploss": {
+      "stoploss": -0.03
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": null,
+      "trailing_stop_positive_offset": 0.0,
+      "trailing_only_offset_is_reached": false
+    },
+    "max_open_trades": {
+      "max_open_trades": 4
+    },
+    "buy": {
+      "ADX_MAX": 34,
+      "BB_SQUEEZE_P": 0.025,
+      "RSI_OVERBOUGHT": 84,
+      "RSI_OVERSOLD": 22,
+      "VOL_SPIKE": 1.8
+    },
+    "sell": {
+      "SL_ATR_MULT": 2.1,
+      "TP_ATR_MULT": 3.3
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2026-05-23 16:26:43.542659+00:00"
+}

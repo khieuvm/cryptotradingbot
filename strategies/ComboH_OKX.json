@@ -1,0 +1,49 @@
+{
+  "strategy_name": "ComboH_OKX",
+  "params": {
+    "roi": {
+      "0": 0.99
+    },
+    "stoploss": {
+      "stoploss": -0.1
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": null,
+      "trailing_stop_positive_offset": 0.0,
+      "trailing_only_offset_is_reached": false
+    },
+    "max_open_trades": {
+      "max_open_trades": 4
+    },
+    "buy": {
+      "BB_MULT": 2.0,
+      "STAKE_RANGE": 0.4,
+      "STAKE_RANGE_LONG": 0.3,
+      "STAKE_RANGE_SHORT": 1.2,
+      "STAKE_S1": 1.0,
+      "STAKE_S2": 1.0,
+      "STAKE_S3": 1.0,
+      "STAKE_S4": 1.0,
+      "STAKE_TREND": 1.4,
+      "STAKE_TREND_LONG": 1.5,
+      "STAKE_TREND_SHORT": 1.2,
+      "ADX_TREND_THR": 33,
+      "ATR_SPIKE_THR": 2.1,
+      "EMA_FAST_P": 25,
+      "EMA_SLOW_P": 70,
+      "ENTRY_ATR_FRACTION": 0.0,
+      "RSI_OB": 69,
+      "RSI_OS": 35,
+      "VOL_MIN": 0.5
+    },
+    "sell": {
+      "SL_ATR_MULT": 9.4,
+      "TIME_CUT_2H_THR": -0.015,
+      "TIME_CUT_8H_THR": -0.017,
+      "TP_ATR_MULT": 10.2
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2026-05-22 16:09:41.060881+00:00"
+}

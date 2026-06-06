@@ -1,0 +1,35 @@
+{
+  "strategy_name": "ComboG_OKX_v4",
+  "params": {
+    "roi": {
+      "0": 0.08
+    },
+    "stoploss": {
+      "stoploss": -0.025
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": null,
+      "trailing_stop_positive_offset": 0.0,
+      "trailing_only_offset_is_reached": false
+    },
+    "max_open_trades": {
+      "max_open_trades": 4
+    },
+    "buy": {
+      "EMA_FAST": 12,
+      "EMA_SLOW": 50,
+      "ADX_MAX": 38,
+      "ADX_MIN": 22,
+      "RSI_BUY": 22,
+      "RSI_SELL": 78,
+      "VOL_MIN": 1.5
+    },
+    "sell": {
+      "SL_ATR_MULT": 2.0,
+      "TP_ATR_MULT": 2.5
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2026-05-23T17:00:00+00:00"
+}

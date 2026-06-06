@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files (large)
+data/
+user_data/data/
+
+# Logs
+logs/
+*.log
+
+# Backtest results (can be regenerated)
+backtest_results/
+
+# Hyperopt results
+hyperopt_results/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Secrets / API keys
+*.env
+.env
+config_master.json
+
+# Plot outputs
+plot/

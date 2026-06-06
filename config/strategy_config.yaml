@@ -1,0 +1,154 @@
+# Crypto Trading Strategy Configuration
+# Single source of truth for all combo parameters
+# ─────────────────────────────────────────────────
+
+exchange: okx
+market: futures
+margin_mode: isolated
+timeframe: 15m
+
+pairs:
+  - BTC/USDT:USDT
+  - ETH/USDT:USDT
+  - SOL/USDT:USDT
+
+# ── Cost model ────────────────────────────────────────────────────────────────
+costs:
+  maker_fee: 0.0002       # 0.02%
+  taker_fee: 0.0005       # 0.05%
+  funding_avg: 0.0001     # ~0.01% per 8h
+
+# ── Active combos (only grade A/B are traded live) ────────────────────────────
+active_combos:
+  - regime_adaptive
+  - meanrev_confluence
+  - trend_composite
+
+# ── Per-combo configuration ───────────────────────────────────────────────────
+combos:
+  regime_adaptive:
+    grade: B
+    timeframe: 15m
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
+    startup_candle_count: 220
+    entry:
+      adx_trend_thr: 31
+      rsi_os: 34
+      rsi_ob: 71
+      vol_min: 0.5
+      ema_fast: 18
+      ema_slow: 50
+      atr_spike_thr: 2.2
+      entry_atr_fraction: 0.15
+    exit:
+      sl_atr_mult: 5.9
+      tp_atr_mult: 9.3
+      time_cut_2h: -0.015
+      time_cut_8h: -0.008
+    stake:
+      trend_long: 1.5
+      trend_short: 1.2
+      range_long: 0.3
+      range_short: 1.2
+    protections:
+      cooldown_candles: 5
+      stoploss_guard_trades: 3
+      stoploss_guard_lookback: 96
+      stoploss_guard_pause: 40
+      max_drawdown: 0.15
+      max_drawdown_lookback: 96
+      max_drawdown_pause: 120
+
+  meanrev_confluence:
+    grade: C
+    timeframe: 15m
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
+    startup_candle_count: 110
+    entry:
+      rsi_buy: 30
+      rsi_sell: 70
+      bb_period: 20
+      ema_fast: 20
+      ema_slow: 50
+      vol_mult: 1.2
+    exit:
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.2
+      time_cut_3h: -0.005
+      time_cut_6h: 0.002
+      time_cut_12h: 0.0
+    protections:
+      cooldown_candles: 4
+      stoploss_guard_trades: 2
+      stoploss_guard_lookback: 24
+      stoploss_guard_pause: 24
+
+  trend_composite:
+    grade: C
+    timeframe: 15m
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
+    startup_candle_count: 110
+    entry:
+      adx_min: 25
+      vol_mult: 1.2
+      rsi_low: 48
+      rsi_high: 65
+      ema_fast: 20
+      ema_slow: 50
+    exit:
+      sl_atr_mult: 1.8
+      tp_atr_mult: 2.5
+      be_atr_mult: 1.5
+    protections:
+      cooldown_candles: 5
+      stoploss_guard_trades: 3
+      stoploss_guard_lookback: 48
+      stoploss_guard_pause: 24
+
+# ── Regime detection ──────────────────────────────────────────────────────────
+regime:
+  adx_trending: 25
+  adx_ranging: 20
+  atr_volatile_mult: 2.0
+  funding_extreme_positive: 0.0008
+  funding_extreme_negative: -0.0007
+
+# ── Signal tracker (auto-disable) ────────────────────────────────────────────
+signal_tracker:
+  window: 20
+  disable_threshold_wr: 0.40
+  disable_lookback: 10
+  disable_duration_hours: 24
+  severe_threshold_wr: 0.35
+  severe_lookback: 20
+
+# ── Crypto sessions (UTC) ────────────────────────────────────────────────────
+sessions:
+  asia: ["00:00", "08:00"]
+  europe: ["08:00", "13:00"]
+  us: ["13:00", "21:00"]
+  dead: ["21:00", "00:00"]
+
+# ── Funding rate config ───────────────────────────────────────────────────────
+funding:
+  settlement_times_utc: ["00:00", "08:00", "16:00"]
+  extreme_positive: 0.001
+  extreme_negative: -0.001
+
+# ── Validation requirements ───────────────────────────────────────────────────
+validation:
+  min_trades: 50
+  min_days: 90
+  walk_forward_is: 60
+  walk_forward_oos: 30
+  walk_forward_step: 30
+  mc_permutations: 100
+  mc_p_threshold: 0.05
+  max_drawdown_a: 0.10
+  max_drawdown_b: 0.15
+
+# ── Leverage ──────────────────────────────────────────────────────────────────
+leverage:
+  default: 3
+  max_allowed: 5
+  liquidation_buffer: 0.15
