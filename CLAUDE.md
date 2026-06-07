@@ -34,7 +34,7 @@ research/            Research scripts and analysis
 ## Market & Exchange
 
 - **Exchange**: OKX futures, isolated margin
-- **Pairs**: BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT
+- **Pairs**: ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, DOGE/USDT:USDT
 - **Timeframe**: 15m primary
 - **Leverage**: 3x default, 5x max
 - **Trading**: 24/7, both LONG and SHORT
@@ -47,15 +47,38 @@ research/            Research scripts and analysis
 - Round-trip (taker both sides): ~0.10%
 - With 24h hold including funding: ~0.13%
 
-## Active Strategies
+## Active Strategies (live/dry-run)
 
-| Strategy | Grade | Description |
-|----------|-------|-------------|
-| regime_adaptive | A | ADX regime detection, trending/ranging signals, EMA cross freshness |
-| volume_spike_rev | B | Volume spike + reversal candle (hammer/shooting star) + RSI extreme |
-| cb_adx_breakout | B | 3-bar compression + low ADX breakout |
-| meanrev_confluence | C | RSI + BB + volume in trend direction |
-| volatility_compression | C | BB/KC squeeze fire, price-action breakout (ETH/SPX only) |
+Only Grade A and B are active. Grade C/F are research-only.
+
+| Strategy | Grade | Pairs | Description |
+|----------|-------|-------|-------------|
+| regime_adaptive | A | ETH, SOL, SPX, DOGE | ADX regime detection, trending/ranging signals, EMA cross freshness |
+| volume_spike_rev | B | ETH, SOL, SPX | Big red candle (body>55%) + volume spike (>3x EMA) + RSI 15-50 for SHORT; hammer + RSI<25 for LONG |
+| cb_adx_breakout | B | ETH, SOL, SPX, DOGE | Bollinger bandwidth compression + ADX<30 declining → breakout entry |
+
+### Inactive Strategies (Grade C/F)
+
+| Strategy | Grade | Notes |
+|----------|-------|-------|
+| meanrev_confluence | F | RSI + BB + volume, underperforms |
+| trend_composite | C | EMA cross + ADX + MACD |
+| compression_breakout | C | BB squeeze breakout |
+| volatility_compression | F | BB/KC squeeze (ETH/SPX only) |
+| funding_contrarian | C | Extreme funding rate fade |
+| micro_pullback | C | EMA pullback in strong trend |
+| nr7_breakout, nr4_breakout, donchian_breakout, vwap_meanrev, cb_nr7_breakout | F | Research rejects |
+
+### Latest Backtest (143d, Jan 15 - Jun 7, 2026)
+
+| Strategy | Trades | Profit | WR | Avg Duration |
+|----------|--------|--------|-----|-------------|
+| volume_spike_rev | 72 | +96.4% | 62% | 15m |
+| cb_adx_breakout | 318 | +90.1% | 49% | 96m |
+| regime_adaptive | 23 | +65.7% | 48% | 18h |
+| **TOTAL** | **413** | **+27.56% wallet** | **51.1%** | **2h41m** |
+
+Max drawdown: 1.75%, Sharpe: 6.27, Profit factor: 3.23
 
 ## Strategy Framework
 
@@ -77,7 +100,7 @@ Parameters loaded from `config/base.yaml` under `strategies.<name>`.
 
 - **Circuit Breaker** (`risk/circuit_breaker.py`): WR tracking, drawdown halt, consecutive losses, auto-disable
 - **Position Sizer** (`risk/position_sizer.py`): ATR-risk-based sizing, portfolio-heat-capped
-- **Stoploss** (`risk/stoploss.py`): 3-phase (initial ATR → break-even → trail-lock)
+- **Stoploss** (`risk/stoploss.py`): 3-phase (fixed ATR from entry → break-even → trail-lock). Returns account-level values (×leverage) because freqtrade divides by leverage internally. 1-candle grace period on entry candle to avoid SL trigger on volatile entries.
 - **Exposure** (`risk/exposure.py`): Max portfolio heat 15%, correlation limits, max 6 trades
 
 ### Auto-Disable Rules
@@ -131,7 +154,7 @@ python ft_run.py download-data --exchange okx --pairs BTC/USDT:USDT ETH/USDT:USD
 
 ## File Conventions
 
-- Strategy code: `strategies/<name>.py`
+- Strategy code: `strategies/tf_15m/<name>.py` (15m timeframe), `strategies/tf_5m/<name>.py` (5m)
 - Strategy parameters: `config/base.yaml` under `strategies.<name>`
 - Research scripts: `research/analyze_<name>.py`
 - Backtest results: `backtest_results/`

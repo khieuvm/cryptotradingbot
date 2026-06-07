@@ -1,0 +1,97 @@
+{
+    "trading_mode": "futures",
+    "margin_mode": "isolated",
+    "exchange": {
+        "name": "okx",
+        "key": "",
+        "secret": "",
+        "password": "",
+        "ccxt_config": {},
+        "ccxt_async_config": {},
+        "pair_whitelist": [
+            "SOL/USDT:USDT"
+        ],
+        "pair_blacklist": []
+    },
+    "stake_currency": "USDT",
+    "stake_amount": 75,
+    "tradable_balance_ratio": 0.95,
+    "dry_run": true,
+    "dry_run_wallet": 1000,
+    "timeframe": "3m",
+    "max_open_trades": 3,
+    "unfilledtimeout": {
+        "entry": 3,
+        "exit": 3
+    },
+    "entry_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0
+    },
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0
+    },
+    "order_types": {
+        "entry": "limit",
+        "exit": "limit",
+        "stoploss": "market",
+        "stoploss_on_exchange": false
+    },
+    "stoploss": -0.15,
+    "trailing_stop": false,
+    "minimal_roi": {
+        "0": 100
+    },
+    "strategy": "CryptoEngine",
+    "active_strategies": [
+        "ml_scalping_enhanced_3m"
+    ],
+    "internals": {
+        "process_throttle_secs": 5
+    },
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8082,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "jwt_secret_key": "ml3m_enhanced_secret_key_random_32char_padding!",
+        "CORS_origins": [
+            "http://localhost:8082"
+        ],
+        "username": "freqtrade",
+        "password": "freqtrade"
+    },
+    "telegram": {
+        "enabled": true,
+        "token": "",
+        "chat_id": "",
+        "notification_settings": {
+            "status": "silent",
+            "warning": "on",
+            "startup": "on",
+            "entry": "on",
+            "exit": "on"
+        }
+    },
+    "bot_name": "ML-Enhanced-SOL-3m",
+    "initial_state": "running",
+    "force_entry_enable": false,
+    "dataformat_ohlcv": "feather",
+    "leverage": {
+        "default": 3
+    },
+    "_comment": "SOL 3m ML Enhanced Scalping (Stacking+Meta-Label+HMM) - Port 8082.",
+    "datadir": "user_data/data",
+    "pairlists": [
+        {
+            "method": "StaticPairList"
+        }
+    ],
+    "strategy_path": "adapters"
+}

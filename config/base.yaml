@@ -12,15 +12,16 @@ exchange:
   trading_mode: futures
   margin_mode: isolated
 
+# ── Network (corporate proxy — set empty string when not on F-Soft network) ──
+# proxy: "http://khieuvm:Lamsaoday2601@fsoft-proxy:8080"
+proxy: ""
+
 # ── Market ────────────────────────────────────────────────────────────────────
 market:
   timeframe: 15m
   pairs:
-    - BTC/USDT:USDT
     - ETH/USDT:USDT
     - SOL/USDT:USDT
-    - SPX/USDT:USDT
-    - NVDA/USDT:USDT
 
 # ── Cost Model ────────────────────────────────────────────────────────────────
 costs:
@@ -106,40 +107,36 @@ entry_filters:
 
 active_strategies:
   - regime_adaptive
-  - volume_spike_rev
   - cb_adx_breakout
-  - meanrev_confluence
-  - volatility_compression
+  - volume_spike_rev
 
 # ── Per-Strategy Configuration ───────────────────────────────────────────────
 strategies:
   regime_adaptive:
     grade: A
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 220
     entry:
       adx_trend_thr: 31
-      rsi_os: 30
-      rsi_ob: 73
-      vol_min: 1.0
+      rsi_os: 25
+      rsi_ob: 70
+      vol_min: 1.5
       ema_fast: 18
       ema_slow: 50
       atr_spike_thr: 2.2
       entry_atr_fraction: 0.15
-      cross_lookback: 8
+      cross_lookback: 5
     exit:
-      sl_atr_mult: 5.9
-      tp_atr_mult: 9.3
+      sl_atr_mult: 7.0
+      tp_atr_mult: 11.0
       time_cut_2h: -0.015
-      time_cut_8h: -0.008
+      time_cut_8h: -0.01
+      time_cut_12h: -0.005
       time_cut_24h: 0.0
       time_cut_48h: 0.005
     stake:
-      trend_long: 1.5
-      trend_short: 1.2
-      range_long: 0.3
-      range_short: 1.2
+      default: 1.0
     protections:
       cooldown_candles: 5
       stoploss_guard_trades: 3
@@ -148,10 +145,25 @@ strategies:
       max_drawdown: 0.15
       max_drawdown_lookback: 96
       max_drawdown_pause: 120
+    pair_overrides:
+      ETH/USDT:USDT:
+        entry:
+          method: market
+        exit:
+          sl_atr_mult: 7.0
+          time_cut_8h: -0.01
+        stake: 1.0
+      SOL/USDT:USDT:
+        entry:
+          method: market
+        exit:
+          sl_atr_mult: 7.0
+          time_cut_12h: -0.005
+        stake: 1.5
 
   meanrev_confluence:
-    grade: C
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    grade: F
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 110
     entry:
@@ -177,7 +189,7 @@ strategies:
 
   trend_composite:
     grade: C
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 110
     entry:
@@ -203,7 +215,7 @@ strategies:
 
   compression_breakout:
     grade: C
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
@@ -228,8 +240,8 @@ strategies:
       stoploss_guard_pause: 24
 
   volatility_compression:
-    grade: C
-    pairs: [ETH/USDT:USDT, SPX/USDT:USDT]
+    grade: F
+    pairs: [ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 80
     entry:
@@ -285,7 +297,7 @@ strategies:
 
   nr7_breakout:
     grade: F
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
@@ -302,7 +314,7 @@ strategies:
 
   nr4_breakout:
     grade: F
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
@@ -319,7 +331,7 @@ strategies:
 
   donchian_breakout:
     grade: F
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
@@ -336,16 +348,16 @@ strategies:
 
   cb_adx_breakout:
     grade: B
-    pairs: [ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT]
+    pairs: [ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
-      compression_thr: 0.6
-      vol_min: 0.8
-      adx_max: 22
+      compression_thr: 0.9
+      vol_min: 0.6
+      adx_max: 30
       adx_lookback: 3
       rsi_max: 72
-      rsi_min: 28
+      rsi_min: 22
       dedup_bars: 6
     exit:
       sl_atr_mult: 3.0
@@ -353,10 +365,27 @@ strategies:
       time_cut_2h: -0.01
       time_cut_6h: -0.005
       time_cut_12h: 0.002
+    stake:
+      default: 1.0
+    pair_overrides:
+      SOL/USDT:USDT:
+        entry:
+          method: limit_atr
+          atr_offset: 0.1
+          fill_window: 4
+        exit:
+          sl_atr_mult: 3.5
+        stake: 1.5
+      ETH/USDT:USDT:
+        entry:
+          method: market
+        exit:
+          sl_atr_mult: 3.0
+        stake: 1.0
 
   cb_nr7_breakout:
     grade: F
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
@@ -375,7 +404,7 @@ strategies:
 
   vwap_meanrev:
     grade: F
-    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 100
     entry:
@@ -393,7 +422,7 @@ strategies:
 
   micro_pullback:
     grade: C
-    pairs: [ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT]
+    pairs: [ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
@@ -412,18 +441,192 @@ strategies:
 
   volume_spike_rev:
     grade: B
-    pairs: [SOL/USDT:USDT, SPX/USDT:USDT, NVDA/USDT:USDT]
+    pairs: [ETH/USDT:USDT, SOL/USDT:USDT]
     timeframe: 15m
     startup_candle_count: 60
     entry:
-      spike_mult: 2.5
+      spike_mult: 3.0
+      body_ratio_min: 0.55
+      rsi_short_max: 50
+      rsi_short_min: 15
+      rsi_os_thr: 25
       shadow_body_ratio: 2.0
-      rsi_os_thr: 30
-      rsi_ob_thr: 68
-      vol_min: 1.5
+      vol_min: 1.0
+      vol_ema_len: 20
     exit:
-      sl_atr_mult: 2.5
-      tp_atr_mult: 4.0
-      time_cut_2h: -0.01
-      time_cut_6h: -0.005
+      sl_atr_mult: 3.0
+      tp_atr_mult: 5.0
+      time_cut_4h: -0.01
+      time_cut_8h: -0.005
       time_cut_12h: 0.0
+    stake:
+      default: 1.0
+    pair_overrides:
+      ETH/USDT:USDT:
+        entry:
+          method: market
+        exit:
+          sl_atr_mult: 4.0
+          tp_atr_mult: 4.0
+        stake: 1.0
+      SOL/USDT:USDT:
+        entry:
+          method: market
+        exit:
+          sl_atr_mult: 3.0
+          tp_atr_mult: 6.0
+        stake: 1.0
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # 5m SCALPING STRATEGIES
+  # ══════════════════════════════════════════════════════════════════════════
+
+  squeeze_breakout_5m:
+    grade: F
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
+    timeframe: 5m
+    startup_candle_count: 120
+    entry:
+      bb_length: 20
+      bb_std: 2.0
+      kc_length: 20
+      kc_mult: 1.5
+      min_squeeze_bars: 4
+      vol_min: 1.2
+      vol_ema_len: 20
+      rsi_length: 9
+      rsi_max: 72
+      rsi_min: 28
+      atr_length: 14
+    exit:
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.5
+      time_cut_30m: -0.005
+      time_cut_60m: -0.003
+      time_cut_90m: 0.0
+
+  nr_breakout_5m:
+    grade: F
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
+    timeframe: 5m
+    startup_candle_count: 100
+    entry:
+      nr_lookback: 7
+      range_atr_mult: 0.8
+      adx_max: 25
+      adx_length: 14
+      atr_length: 14
+      vol_min: 0.8
+      vol_ema_len: 20
+      rsi_max: 72
+      rsi_min: 28
+      dedup_bars: 5
+    exit:
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.5
+      time_cut_30m: -0.005
+      time_cut_60m: -0.003
+      time_cut_90m: 0.0
+
+  volume_climax_5m:
+    grade: F
+    pairs: [BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT]
+    timeframe: 5m
+    startup_candle_count: 100
+    entry:
+      spike_mult: 3.0
+      shadow_body_ratio: 2.0
+      bb_length: 20
+      bb_std: 2.0
+      vol_ema_len: 20
+      rsi_os_thr: 25
+      rsi_ob_thr: 75
+    exit:
+      sl_atr_mult: 1.2
+      tp_atr_mult: 2.0
+      time_cut_20m: -0.004
+      time_cut_45m: -0.002
+      time_cut_60m: 0.0
+
+  ml_ensemble_5m:
+    grade: B
+    pairs: [ETH/USDT:USDT, SOL/USDT:USDT]
+    timeframe: 5m
+    startup_candle_count: 300
+    entry:
+      confidence_threshold: 0.63
+      confidence_threshold_btc: 0.63
+      confidence_threshold_eth: 0.63
+      confidence_threshold_spx: 0.60
+      direction_gap: 0.05
+      entry_atr_fraction: 0.3
+    exit:
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.0
+      time_cut_15m: -0.004
+      time_cut_30m: -0.002
+      time_cut_45m: 0.0
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # 3m ML SCALPING STRATEGIES
+  # ══════════════════════════════════════════════════════════════════════════
+
+  ml_scalping_sol_3m:
+    grade: B
+    pairs: [SOL/USDT:USDT]
+    timeframe: 3m
+    startup_candle_count: 200
+    entry:
+      confidence_threshold: 0.58
+      method: limit_atr
+      atr_offset: 0.15
+      fill_window: 2
+    exit:
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.0
+      time_cut_9m: -0.006
+      time_cut_18m: -0.003
+      time_cut_30m: -0.001
+      time_cut_45m: 0.0
+      trailing:
+        enabled: true
+        be_trigger: 0.4
+        be_offset: 0.1
+        trail_trigger: 0.7
+        trail_dist: 0.3
+    stake:
+      default: 1.5
+
+  ml_scalping_enhanced_3m:
+    grade: B
+    pairs: [SOL/USDT:USDT]
+    timeframe: 3m
+    startup_candle_count: 200
+    entry:
+      confidence_threshold: 0.58
+      meta_label_threshold: 0.55
+      use_stacking: true
+      use_meta_label: true
+      use_regime_hmm: true
+      regime_offsets:
+        calm: -0.02
+        normal: 0.0
+        volatile: 0.03
+      method: limit_atr
+      atr_offset: 0.15
+      fill_window: 2
+    exit:
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.0
+      time_cut_9m: -0.006
+      time_cut_18m: -0.003
+      time_cut_30m: -0.001
+      time_cut_45m: 0.0
+      trailing:
+        enabled: true
+        be_trigger: 0.4
+        be_offset: 0.1
+        trail_trigger: 0.7
+        trail_dist: 0.3
+    stake:
+      default: 1.5

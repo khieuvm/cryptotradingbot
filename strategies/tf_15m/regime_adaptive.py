@@ -223,6 +223,82 @@ class RegimeAdaptiveStrategy(BaseStrategy):
 
         return signals
 
+    def populate_entry_columns(self, dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
+        """Vectorized signal detection for efficient backtesting."""
+        adx_thr = self.config.entry.get("adx_trend_thr", 31)
+        rsi_os = self.config.entry.get("rsi_os", 34)
+        rsi_ob = self.config.entry.get("rsi_ob", 71)
+        vol_min = self.config.entry.get("vol_min", 0.5)
+        atr_spike = self.config.entry.get("atr_spike_thr", 2.2)
+
+        df = dataframe
+        startup = self.startup_candle_count
+
+        # Common filters
+        valid = (
+            (df["ra_atr_ratio"] < atr_spike)
+            & (df["ra_vol_ratio"] >= vol_min)
+            & (df["volume"] > 0)
+        )
+
+        # Trending conditions
+        is_trending = df["ra_adx"] > adx_thr
+        is_bull = df["ra_is_bull"] == 1
+        is_bear = df["ra_is_bear"] == 1
+
+        trend_long = (
+            valid & is_trending & is_bull
+            & (df["ra_cross_up_recent"] == 1)
+            & (df["ra_ema_fast"] > df["ra_ema_slow"])
+            & (df["ra_macd_hist"] > 0)
+            & (df["ra_plus_di"] > df["ra_minus_di"])
+            & (df["ra_st_dir"] == 1)
+        )
+
+        trend_short = (
+            valid & is_trending & is_bear
+            & (df["ra_cross_down_recent"] == 1)
+            & (df["ra_ema_fast"] < df["ra_ema_slow"])
+            & (df["ra_macd_hist"] < 0)
+            & (df["ra_minus_di"] > df["ra_plus_di"])
+            & (df["ra_st_dir"] == -1)
+        )
+
+        # Ranging conditions
+        rsi = df["ra_rsi"]
+        prev_rsi = rsi.shift(1)
+
+        range_long = (
+            valid & ~is_trending
+            & (prev_rsi < rsi_os) & (rsi > prev_rsi)
+            & (df["close"] < df["ra_bb_lower"] * 1.01)
+            & (df["close"] > df["open"])
+            & (df["ra_obv_rising"] == 1)
+        )
+
+        range_short = (
+            valid & ~is_trending
+            & (prev_rsi > rsi_ob) & (rsi < prev_rsi)
+            & (df["close"] > df["ra_bb_upper"] * 0.99)
+            & (df["close"] < df["open"])
+            & (df["ra_obv_rising"] == 0)
+        )
+
+        # Apply signals (skip startup period)
+        enter_long = (trend_long | range_long)
+        enter_short = (trend_short | range_short)
+        enter_long.iloc[:startup] = False
+        enter_short.iloc[:startup] = False
+
+        dataframe.loc[enter_long, "enter_long"] = 1
+        dataframe.loc[enter_long & trend_long, "enter_tag"] = f"{self.name}_trend_long"
+        dataframe.loc[enter_long & range_long & ~trend_long, "enter_tag"] = f"{self.name}_range_long"
+        dataframe.loc[enter_short, "enter_short"] = 1
+        dataframe.loc[enter_short & trend_short, "enter_tag"] = f"{self.name}_trend_short"
+        dataframe.loc[enter_short & range_short & ~trend_short, "enter_tag"] = f"{self.name}_range_short"
+
+        return dataframe
+
     def detect_exits(
         self, dataframe: pd.DataFrame, pair: str, trade_info: dict | None
     ) -> ExitRequest | None:

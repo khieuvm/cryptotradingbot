@@ -41,7 +41,37 @@ class StrategyConfig:
     exit: dict[str, Any]
     stake: dict[str, float] = field(default_factory=dict)
     protections: dict[str, Any] = field(default_factory=dict)
+    raw_data: dict[str, Any] = field(default_factory=dict)
+    pair_overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
     enabled: bool = True
+
+    def get_entry(self, pair: str | None = None) -> dict[str, Any]:
+        """Get entry params with per-pair overrides applied."""
+        base = dict(self.entry)
+        if pair and pair in self.pair_overrides:
+            override = self.pair_overrides[pair].get("entry", {})
+            base.update(override)
+        return base
+
+    def get_exit(self, pair: str | None = None) -> dict[str, Any]:
+        """Get exit params with per-pair overrides applied."""
+        base = dict(self.exit)
+        if pair and pair in self.pair_overrides:
+            override = self.pair_overrides[pair].get("exit", {})
+            base.update(override)
+        return base
+
+    def get_stake_factor(self, pair: str | None = None) -> float:
+        """Get stake factor for a pair."""
+        if pair and pair in self.pair_overrides:
+            val = self.pair_overrides[pair].get("stake")
+            if val is not None:
+                return float(val)
+        if isinstance(self.stake, dict):
+            if pair and pair in self.stake:
+                return float(self.stake[pair])
+            return float(self.stake.get("default", 1.0))
+        return 1.0
 
 
 class AppConfig:
@@ -59,6 +89,7 @@ class AppConfig:
         overlay_path = _CONFIG_DIR / "env" / f"{env}.yaml"
         self._overlay = self._load_yaml(overlay_path) if overlay_path.exists() else {}
         self._merged = _deep_merge(self._base, self._overlay)
+        self._active_override: list[str] | None = None
 
     @staticmethod
     def _load_yaml(path: Path) -> dict:
@@ -85,10 +116,14 @@ class AppConfig:
             exit=raw.get("exit", {}),
             stake=raw.get("stake", {}),
             protections=raw.get("protections", {}),
+            raw_data=raw,
+            pair_overrides=raw.get("pair_overrides", {}),
             enabled=raw.get("enabled", True),
         )
 
     def get_active_strategies(self) -> list[str]:
+        if self._active_override is not None:
+            return self._active_override
         return self._merged.get("active_strategies", [])
 
     # ── Market ────────────────────────────────────────────────────────────────
@@ -167,8 +202,15 @@ class AppConfig:
                 "key": m.get("api_key", ""),
                 "secret": m.get("api_secret", ""),
                 "password": m.get("api_password", ""),
-                "ccxt_config": {"enableRateLimit": True},
-                "ccxt_sync_config": {"enableRateLimit": True},
+                "ccxt_config": {
+                    "enableRateLimit": True,
+                    **({"aiohttp_proxy": m["proxy"]} if m.get("proxy") else {}),
+                    **({"proxies": {"http": m["proxy"], "https": m["proxy"]}} if m.get("proxy") else {}),
+                },
+                "ccxt_sync_config": {
+                    "enableRateLimit": True,
+                    **({"proxies": {"http": m["proxy"], "https": m["proxy"]}} if m.get("proxy") else {}),
+                },
                 "pair_whitelist": market.get("pairs", []),
             },
             "entry_pricing": {"price_side": "other", "use_order_book": True, "order_book_top": 1},

@@ -149,6 +149,28 @@ class CbAdxBreakoutStrategy(BaseStrategy):
 
         return signals
 
+    def populate_entry_columns(self, dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
+        """Vectorized signal detection for backtesting."""
+        rsi_max = self.config.entry.get("rsi_max", 72)
+        rsi_min = self.config.entry.get("rsi_min", 28)
+        startup = self.startup_candle_count
+        df = dataframe
+
+        not_deduped = ~df["cba_last_signal"]
+
+        enter_long = df["cba_break_up"] & not_deduped & (df["cba_rsi"] < rsi_max)
+        enter_short = df["cba_break_down"] & not_deduped & (df["cba_rsi"] > rsi_min)
+
+        enter_long.iloc[:startup] = False
+        enter_short.iloc[:startup] = False
+
+        dataframe.loc[enter_long, "enter_long"] = 1
+        dataframe.loc[enter_long, "enter_tag"] = f"{self.name}_long"
+        dataframe.loc[enter_short, "enter_short"] = 1
+        dataframe.loc[enter_short, "enter_tag"] = f"{self.name}_short"
+
+        return dataframe
+
     def detect_exits(
         self, dataframe: pd.DataFrame, pair: str, trade_info: dict | None
     ) -> ExitRequest | None:

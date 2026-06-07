@@ -146,6 +146,24 @@ class BaseStrategy(ABC):
         """
         ...
 
+    def populate_entry_columns(self, dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
+        """Vectorized entry signal detection for backtesting.
+
+        Sets enter_long/enter_short/enter_tag columns directly on the dataframe.
+        Override this for efficient backtesting. Default: row-by-row fallback.
+        """
+        for i in range(self.startup_candle_count, len(dataframe)):
+            sub_df = dataframe.iloc[: i + 1]
+            signals = self.detect_entries(sub_df, pair)
+            for signal in signals:
+                if signal.direction.value == "long":
+                    dataframe.iloc[i, dataframe.columns.get_loc("enter_long")] = 1
+                    dataframe.iloc[i, dataframe.columns.get_loc("enter_tag")] = signal.tag
+                else:
+                    dataframe.iloc[i, dataframe.columns.get_loc("enter_short")] = 1
+                    dataframe.iloc[i, dataframe.columns.get_loc("enter_tag")] = signal.tag
+        return dataframe
+
     @abstractmethod
     def detect_exits(
         self, dataframe: pd.DataFrame, pair: str, trade_info: dict | None
@@ -161,35 +179,81 @@ class BaseStrategy(ABC):
     # RISK PARAMETERS (strategy provides its own defaults)
     # ═══════════════════════════════════════════════════════════════════════════
 
+    def get_sl_atr_mult(self, pair: str | None = None) -> float:
+        """Per-pair SL multiplier from pair_overrides or global exit config."""
+        exit_cfg = self.config.get_exit(pair)
+        return float(exit_cfg.get("sl_atr_mult", 2.0))
+
+    def get_tp_atr_mult(self, pair: str | None = None) -> float:
+        """Per-pair TP multiplier from pair_overrides or global exit config."""
+        exit_cfg = self.config.get_exit(pair)
+        return float(exit_cfg.get("tp_atr_mult", 3.0))
+
     @property
     def sl_atr_mult(self) -> float:
-        return self.config.exit.get("sl_atr_mult", 2.0)
+        return float(self.config.exit.get("sl_atr_mult", 2.0))
 
     @property
     def tp_atr_mult(self) -> float:
-        return self.config.exit.get("tp_atr_mult", 3.0)
+        return float(self.config.exit.get("tp_atr_mult", 3.0))
 
     @property
     def entry_atr_fraction(self) -> float:
         return self.config.entry.get("entry_atr_fraction", 0.0)
 
+    def get_entry_config(self, pair: str) -> dict[str, Any]:
+        """Get full entry config with per-pair overrides applied."""
+        return self.config.get_entry(pair)
+
+    def get_exit_config(self, pair: str) -> dict[str, Any]:
+        """Get full exit config with per-pair overrides applied."""
+        return self.config.get_exit(pair)
+
+    def get_entry_optimization(self, pair: str) -> dict[str, Any]:
+        """Get per-pair entry optimization (method, atr_offset, fill_window).
+
+        Now reads from pair_overrides.<pair>.entry instead of separate entry_optimization.
+        """
+        entry_cfg = self.config.get_entry(pair)
+        if "method" in entry_cfg:
+            return {k: v for k, v in entry_cfg.items()
+                    if k in ("method", "atr_offset", "fill_window")}
+        # Fallback: legacy entry_optimization section
+        raw = self.config.raw_data.get("entry_optimization", {})
+        return raw.get(pair, {})
+
+    def get_trailing_config(self, pair: str) -> dict[str, Any] | None:
+        """Get per-pair trailing stop config from pair_overrides."""
+        exit_cfg = self.config.get_exit(pair)
+        trailing = exit_cfg.get("trailing", {})
+        if isinstance(trailing, dict) and trailing.get("enabled", False):
+            return trailing
+        return None
+
     def get_position_size_factor(
         self, pair: str, direction: str, regime: str | None = None
     ) -> float:
-        """Strategy-specific position sizing multiplier."""
-        if regime:
-            key = f"{regime}_{direction}"
-        else:
-            key = direction
-        return self.config.stake.get(key, 1.0)
+        """Strategy-specific position sizing multiplier (per-pair, per-direction, or per-regime)."""
+        factor = self.config.get_stake_factor(pair)
+        if factor != 1.0:
+            return factor
+        stake = self.config.stake
+        if isinstance(stake, dict):
+            if regime:
+                key = f"{regime}_{direction}"
+                if key in stake:
+                    return float(stake[key])
+            if direction in stake:
+                return float(stake[direction])
+        return 1.0
 
-    def get_stoploss_distance(self, atr: float) -> float:
+    def get_stoploss_distance(self, atr: float, pair: str | None = None) -> float:
         """ATR-based stoploss distance (absolute price units)."""
-        return self.sl_atr_mult * atr
+        return self.get_sl_atr_mult(pair) * atr
 
-    def get_tp_distance(self, atr: float) -> float:
+    def get_tp_distance(self, atr: float, pair: str | None = None) -> float:
         """ATR-based take-profit distance (absolute price units)."""
-        return self.tp_atr_mult * atr
+        return self.get_tp_atr_mult(pair) * atr
 
     # ═══════════════════════════════════════════════════════════════════════════
     # UTILITY

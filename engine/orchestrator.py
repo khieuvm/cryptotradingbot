@@ -136,7 +136,7 @@ class Orchestrator:
     ) -> str | None:
         """Check if current trade should be exited. Called from custom_exit."""
         enter_tag = getattr(trade, "enter_tag", "") or ""
-        strategy_name = enter_tag.rsplit("_", 1)[0] if "_" in enter_tag else ""
+        strategy_name = self._parse_strategy_name(enter_tag)
 
         # Check pending exits from event bus
         if pair in self.state.pending_exits:
@@ -172,10 +172,30 @@ class Orchestrator:
         trade: Any,
         current_rate: float,
         current_profit: float,
+        current_time: datetime | None = None,
     ) -> float:
         """Calculate dynamic stoploss. Called from custom_stoploss."""
         enter_tag = getattr(trade, "enter_tag", "") or ""
-        strategy_name = enter_tag.rsplit("_", 1)[0] if "_" in enter_tag else ""
+        strategy_name = self._parse_strategy_name(enter_tag)
+
+        # Grace period: don't tighten SL on the entry candle.
+        # High-volatility strategies (volume_spike_rev, cb_adx_breakout) enter
+        # on big-move candles where the next candle's bounce easily exceeds a
+        # tight ATR-based SL.  Returning -1 tells freqtrade to use the initial
+        # stoploss (-0.15) for the first candle, giving the trade room to breathe.
+        if current_time is not None:
+            open_date = getattr(trade, "open_date_utc", None)
+            if open_date is not None:
+                try:
+                    duration_s = (current_time - open_date).total_seconds()
+                except TypeError:
+                    duration_s = 3600
+                timeframe = self.config.get_timeframe()
+                candle_s = {"1m": 60, "3m": 180, "5m": 300, "15m": 900, "1h": 3600}.get(
+                    timeframe, 900
+                )
+                if duration_s < candle_s:
+                    return -1
 
         strat = self._strategies.get(strategy_name)
         if strat is None:
@@ -189,15 +209,21 @@ class Orchestrator:
         atr = self._get_atr(last, strategy_name)
         fee = getattr(trade, "fee_open", 0.0005) + getattr(trade, "fee_close", 0.0005)
 
+        trailing_cfg = strat.get_trailing_config(pair)
+
+        leverage = getattr(trade, "leverage", 1.0) or 1.0
+
         return self.stoploss_mgr.calculate_stoploss(
             current_profit=current_profit,
-            sl_atr_mult=strat.sl_atr_mult,
-            tp_atr_mult=strat.tp_atr_mult,
+            sl_atr_mult=strat.get_sl_atr_mult(pair),
+            tp_atr_mult=strat.get_tp_atr_mult(pair),
             atr=atr,
             open_rate=trade.open_rate,
             current_rate=current_rate,
             is_short=trade.is_short,
             fee=fee,
+            trailing_cfg=trailing_cfg,
+            leverage=leverage,
         )
 
     def calculate_stake(
@@ -210,7 +236,7 @@ class Orchestrator:
         max_stake: float,
     ) -> float:
         """Calculate position size. Called from custom_stake_amount."""
-        strategy_name = entry_tag.rsplit("_", 1)[0] if "_" in entry_tag else ""
+        strategy_name = self._parse_strategy_name(entry_tag)
         strat = self._strategies.get(strategy_name)
         if strat is None:
             return proposed_stake
@@ -232,7 +258,7 @@ class Orchestrator:
         current_time: datetime,
     ) -> bool:
         """Pre-trade validation. Called from confirm_trade_entry."""
-        strategy_name = entry_tag.rsplit("_", 1)[0] if "_" in entry_tag else ""
+        strategy_name = self._parse_strategy_name(entry_tag)
 
         # Circuit breaker check
         if self.circuit_breaker.is_disabled(strategy_name, pair):
@@ -279,7 +305,7 @@ class Orchestrator:
     ) -> bool:
         """Post-trade recording. Called from confirm_trade_exit."""
         enter_tag = getattr(trade, "enter_tag", "") or ""
-        strategy_name = enter_tag.rsplit("_", 1)[0] if "_" in enter_tag else ""
+        strategy_name = self._parse_strategy_name(enter_tag)
         is_win = (rate - trade.open_rate > 0) if not trade.is_short else (trade.open_rate - rate > 0)
         profit_pct = (rate - trade.open_rate) / trade.open_rate
         if trade.is_short:
@@ -322,11 +348,42 @@ class Orchestrator:
     # INTERNAL HELPERS
     # ═══════════════════════════════════════════════════════════════════════════
 
+    def _parse_strategy_name(self, tag: str) -> str:
+        """Extract strategy name from enter_tag by matching registered strategies.
+
+        Tags like 'regime_adaptive_trend_long' must match 'regime_adaptive',
+        not 'regime_adaptive_trend' (which rsplit would produce).
+        """
+        if not tag:
+            return ""
+        for name in self._strategies:
+            if tag == name or tag.startswith(name + "_"):
+                return name
+        return ""
+
     @staticmethod
     def _get_atr(last_row: pd.Series, strategy_name: str) -> float:
         """Get ATR value from dataframe row, checking strategy-prefixed columns."""
-        prefixes = ["ra_", "tc_", "mr_", ""]
-        for p in prefixes:
+        prefix_map = {
+            "regime_adaptive": "ra_",
+            "trend_composite": "tc_",
+            "meanrev_confluence": "mr_",
+            "compression_breakout": "cb_",
+            "cb_adx_breakout": "cba_",
+            "volume_spike_rev": "vs_",
+            "volatility_compression": "vc_",
+            "funding_contrarian": "fc_",
+            "micro_pullback": "mp_",
+            "ml_scalping_sol_3m": "mls3_",
+            "ml_scalping_enhanced_3m": "mle3_",
+        }
+        prefix = prefix_map.get(strategy_name, "")
+        if prefix:
+            for col_suffix in ["atr_14_raw", "atr_14", "atr"]:
+                val = last_row.get(f"{prefix}{col_suffix}", 0)
+                if val and float(val) > 0:
+                    return float(val)
+        for p in ["ra_", "cba_", "vs_", ""]:
             val = last_row.get(f"{p}atr", 0)
             if val and float(val) > 0:
                 return float(val)

@@ -1,0 +1,2483 @@
+{
+  "BTC_1m_LightGBM_tripl": {
+    "0.5": {
+      "trades": 35053,
+      "trades_per_day": 1168.4,
+      "wr": 51.3,
+      "avg_ret_bps": 1.75,
+      "pnl_gross_%": 614.7,
+      "pnl_maker_%": -787.42,
+      "pnl_taker_%": -2890.6,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 18089,
+      "trades_per_day": 603.0,
+      "wr": 52.3,
+      "avg_ret_bps": 2.12,
+      "pnl_gross_%": 384.33,
+      "pnl_maker_%": -339.23,
+      "pnl_taker_%": -1424.57,
+      "sharpe": 1.5,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 5213,
+      "trades_per_day": 173.8,
+      "wr": 53.1,
+      "avg_ret_bps": 2.91,
+      "pnl_gross_%": 151.88,
+      "pnl_maker_%": -56.64,
+      "pnl_taker_%": -369.42,
+      "sharpe": 2.9,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1549,
+      "trades_per_day": 51.6,
+      "wr": 50.2,
+      "avg_ret_bps": 3.3,
+      "pnl_gross_%": 51.09,
+      "pnl_maker_%": -10.87,
+      "pnl_taker_%": -103.81,
+      "sharpe": 4.5,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 903,
+      "trades_per_day": 30.1,
+      "wr": 51.1,
+      "avg_ret_bps": 4.21,
+      "pnl_gross_%": 38.01,
+      "pnl_maker_%": 1.89,
+      "pnl_taker_%": -52.29,
+      "sharpe": 6.6,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 367,
+      "trades_per_day": 12.2,
+      "wr": 51.8,
+      "avg_ret_bps": 6.0,
+      "pnl_gross_%": 22.01,
+      "pnl_maker_%": 7.33,
+      "pnl_taker_%": -14.69,
+      "sharpe": 13.1,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 21,
+      "trades_per_day": 0.7,
+      "wr": 71.4,
+      "avg_ret_bps": 18.09,
+      "pnl_gross_%": 3.8,
+      "pnl_maker_%": 2.96,
+      "pnl_taker_%": 1.7,
+      "sharpe": 183.3,
+      "folds": 3
+    }
+  },
+  "BTC_1m_LightGBM_fixed": {
+    "0.5": {
+      "trades": 22606,
+      "trades_per_day": 753.5,
+      "wr": 53.1,
+      "avg_ret_bps": 3.6,
+      "pnl_gross_%": 814.58,
+      "pnl_maker_%": -89.66,
+      "pnl_taker_%": -1446.02,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 16140,
+      "trades_per_day": 538.0,
+      "wr": 54.2,
+      "avg_ret_bps": 4.07,
+      "pnl_gross_%": 657.03,
+      "pnl_maker_%": 11.43,
+      "pnl_taker_%": -956.97,
+      "sharpe": 1.7,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 9143,
+      "trades_per_day": 304.8,
+      "wr": 54.7,
+      "avg_ret_bps": 4.57,
+      "pnl_gross_%": 418.1,
+      "pnl_maker_%": 52.38,
+      "pnl_taker_%": -496.2,
+      "sharpe": 2.3,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 4974,
+      "trades_per_day": 165.8,
+      "wr": 54.2,
+      "avg_ret_bps": 4.96,
+      "pnl_gross_%": 246.94,
+      "pnl_maker_%": 47.98,
+      "pnl_taker_%": -250.46,
+      "sharpe": 3.0,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 3324,
+      "trades_per_day": 110.8,
+      "wr": 53.8,
+      "avg_ret_bps": 5.14,
+      "pnl_gross_%": 170.92,
+      "pnl_maker_%": 37.96,
+      "pnl_taker_%": -161.48,
+      "sharpe": 3.5,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 1435,
+      "trades_per_day": 47.8,
+      "wr": 51.8,
+      "avg_ret_bps": 6.14,
+      "pnl_gross_%": 88.17,
+      "pnl_maker_%": 30.77,
+      "pnl_taker_%": -55.33,
+      "sharpe": 5.5,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 696,
+      "trades_per_day": 23.2,
+      "wr": 49.1,
+      "avg_ret_bps": 5.07,
+      "pnl_gross_%": 35.31,
+      "pnl_maker_%": 7.47,
+      "pnl_taker_%": -34.29,
+      "sharpe": 6.2,
+      "folds": 3
+    }
+  },
+  "BTC_1m_ExtraTrees_tripl": {
+    "0.5": {
+      "trades": 35053,
+      "trades_per_day": 1168.4,
+      "wr": 51.1,
+      "avg_ret_bps": 1.71,
+      "pnl_gross_%": 597.7,
+      "pnl_maker_%": -804.42,
+      "pnl_taker_%": -2907.6,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 2218,
+      "trades_per_day": 73.9,
+      "wr": 52.1,
+      "avg_ret_bps": 4.43,
+      "pnl_gross_%": 98.19,
+      "pnl_maker_%": 9.47,
+      "pnl_taker_%": -123.61,
+      "sharpe": 4.9,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 485,
+      "trades_per_day": 16.2,
+      "wr": 52.8,
+      "avg_ret_bps": 6.09,
+      "pnl_gross_%": 29.55,
+      "pnl_maker_%": 10.15,
+      "pnl_taker_%": -18.95,
+      "sharpe": 11.1,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 19,
+      "trades_per_day": 0.6,
+      "wr": 63.2,
+      "avg_ret_bps": 11.72,
+      "pnl_gross_%": 2.23,
+      "pnl_maker_%": 1.47,
+      "pnl_taker_%": 0.33,
+      "sharpe": 112.1,
+      "folds": 3
+    }
+  },
+  "BTC_1m_ExtraTrees_fixed": {
+    "0.5": {
+      "trades": 22606,
+      "trades_per_day": 753.5,
+      "wr": 52.6,
+      "avg_ret_bps": 3.43,
+      "pnl_gross_%": 776.36,
+      "pnl_maker_%": -127.88,
+      "pnl_taker_%": -1484.24,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 10399,
+      "trades_per_day": 346.6,
+      "wr": 54.1,
+      "avg_ret_bps": 4.19,
+      "pnl_gross_%": 435.48,
+      "pnl_maker_%": 19.52,
+      "pnl_taker_%": -604.42,
+      "sharpe": 2.0,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 3425,
+      "trades_per_day": 114.2,
+      "wr": 53.1,
+      "avg_ret_bps": 5.17,
+      "pnl_gross_%": 176.91,
+      "pnl_maker_%": 39.91,
+      "pnl_taker_%": -165.59,
+      "sharpe": 3.4,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1527,
+      "trades_per_day": 50.9,
+      "wr": 53.5,
+      "avg_ret_bps": 6.84,
+      "pnl_gross_%": 104.41,
+      "pnl_maker_%": 43.33,
+      "pnl_taker_%": -48.29,
+      "sharpe": 5.7,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 1002,
+      "trades_per_day": 33.4,
+      "wr": 52.2,
+      "avg_ret_bps": 6.72,
+      "pnl_gross_%": 67.32,
+      "pnl_maker_%": 27.24,
+      "pnl_taker_%": -32.88,
+      "sharpe": 6.5,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 92,
+      "trades_per_day": 3.1,
+      "wr": 48.9,
+      "avg_ret_bps": 8.65,
+      "pnl_gross_%": 7.96,
+      "pnl_maker_%": 4.28,
+      "pnl_taker_%": -1.24,
+      "sharpe": 20.6,
+      "folds": 3
+    }
+  },
+  "BTC_1m_RandomForest_tripl": {
+    "0.5": {
+      "trades": 35053,
+      "trades_per_day": 1168.4,
+      "wr": 51.5,
+      "avg_ret_bps": 1.74,
+      "pnl_gross_%": 610.37,
+      "pnl_maker_%": -791.75,
+      "pnl_taker_%": -2894.93,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 8542,
+      "trades_per_day": 284.7,
+      "wr": 52.9,
+      "avg_ret_bps": 2.63,
+      "pnl_gross_%": 224.8,
+      "pnl_maker_%": -116.88,
+      "pnl_taker_%": -629.4,
+      "sharpe": 2.2,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 1392,
+      "trades_per_day": 46.4,
+      "wr": 50.4,
+      "avg_ret_bps": 4.03,
+      "pnl_gross_%": 56.07,
+      "pnl_maker_%": 0.39,
+      "pnl_taker_%": -83.13,
+      "sharpe": 5.2,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 851,
+      "trades_per_day": 28.4,
+      "wr": 49.7,
+      "avg_ret_bps": 4.67,
+      "pnl_gross_%": 39.71,
+      "pnl_maker_%": 5.67,
+      "pnl_taker_%": -45.39,
+      "sharpe": 6.8,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 669,
+      "trades_per_day": 22.3,
+      "wr": 50.2,
+      "avg_ret_bps": 4.58,
+      "pnl_gross_%": 30.67,
+      "pnl_maker_%": 3.91,
+      "pnl_taker_%": -36.23,
+      "sharpe": 7.7,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 253,
+      "trades_per_day": 8.4,
+      "wr": 49.0,
+      "avg_ret_bps": 3.56,
+      "pnl_gross_%": 9.01,
+      "pnl_maker_%": -1.11,
+      "pnl_taker_%": -16.29,
+      "sharpe": 10.6,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 17,
+      "trades_per_day": 0.6,
+      "wr": 23.5,
+      "avg_ret_bps": -8.48,
+      "pnl_gross_%": -1.44,
+      "pnl_maker_%": -2.12,
+      "pnl_taker_%": -3.14,
+      "sharpe": -120.2,
+      "folds": 3
+    }
+  },
+  "BTC_1m_RandomForest_fixed": {
+    "0.5": {
+      "trades": 22606,
+      "trades_per_day": 753.5,
+      "wr": 52.9,
+      "avg_ret_bps": 3.54,
+      "pnl_gross_%": 801.33,
+      "pnl_maker_%": -102.91,
+      "pnl_taker_%": -1459.27,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 13329,
+      "trades_per_day": 444.3,
+      "wr": 54.0,
+      "avg_ret_bps": 4.07,
+      "pnl_gross_%": 542.84,
+      "pnl_maker_%": 9.68,
+      "pnl_taker_%": -790.06,
+      "sharpe": 1.8,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 5688,
+      "trades_per_day": 189.6,
+      "wr": 53.7,
+      "avg_ret_bps": 4.62,
+      "pnl_gross_%": 262.85,
+      "pnl_maker_%": 35.33,
+      "pnl_taker_%": -305.95,
+      "sharpe": 2.6,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 2872,
+      "trades_per_day": 95.7,
+      "wr": 52.8,
+      "avg_ret_bps": 5.38,
+      "pnl_gross_%": 154.37,
+      "pnl_maker_%": 39.49,
+      "pnl_taker_%": -132.83,
+      "sharpe": 3.7,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 2126,
+      "trades_per_day": 70.9,
+      "wr": 52.7,
+      "avg_ret_bps": 5.85,
+      "pnl_gross_%": 124.39,
+      "pnl_maker_%": 39.35,
+      "pnl_taker_%": -88.21,
+      "sharpe": 4.4,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 1111,
+      "trades_per_day": 37.0,
+      "wr": 50.9,
+      "avg_ret_bps": 5.81,
+      "pnl_gross_%": 64.49,
+      "pnl_maker_%": 20.05,
+      "pnl_taker_%": -46.61,
+      "sharpe": 5.7,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 537,
+      "trades_per_day": 17.9,
+      "wr": 47.7,
+      "avg_ret_bps": 3.92,
+      "pnl_gross_%": 21.03,
+      "pnl_maker_%": -0.45,
+      "pnl_taker_%": -32.67,
+      "sharpe": 5.4,
+      "folds": 3
+    }
+  },
+  "ETH_1m_LightGBM_tripl": {
+    "0.5": {
+      "trades": 34588,
+      "trades_per_day": 1152.9,
+      "wr": 50.5,
+      "avg_ret_bps": 2.15,
+      "pnl_gross_%": 743.66,
+      "pnl_maker_%": -639.86,
+      "pnl_taker_%": -2715.14,
+      "sharpe": 0.9,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 17883,
+      "trades_per_day": 596.1,
+      "wr": 50.8,
+      "avg_ret_bps": 2.38,
+      "pnl_gross_%": 425.66,
+      "pnl_maker_%": -289.66,
+      "pnl_taker_%": -1362.64,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 4553,
+      "trades_per_day": 151.8,
+      "wr": 51.5,
+      "avg_ret_bps": 2.97,
+      "pnl_gross_%": 135.04,
+      "pnl_maker_%": -47.08,
+      "pnl_taker_%": -320.26,
+      "sharpe": 2.8,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 871,
+      "trades_per_day": 29.0,
+      "wr": 53.4,
+      "avg_ret_bps": 3.49,
+      "pnl_gross_%": 30.36,
+      "pnl_maker_%": -4.48,
+      "pnl_taker_%": -56.74,
+      "sharpe": 6.9,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 257,
+      "trades_per_day": 8.6,
+      "wr": 55.6,
+      "avg_ret_bps": 3.17,
+      "pnl_gross_%": 8.14,
+      "pnl_maker_%": -2.14,
+      "pnl_taker_%": -17.56,
+      "sharpe": 11.5,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 16,
+      "trades_per_day": 0.5,
+      "wr": 18.8,
+      "avg_ret_bps": -10.06,
+      "pnl_gross_%": -1.61,
+      "pnl_maker_%": -2.25,
+      "pnl_taker_%": -3.21,
+      "sharpe": -147.3,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 2,
+      "trades_per_day": 0.1,
+      "wr": 50.0,
+      "avg_ret_bps": 1.68,
+      "pnl_gross_%": 0.03,
+      "pnl_maker_%": -0.05,
+      "pnl_taker_%": -0.17,
+      "sharpe": 87.0,
+      "folds": 3
+    }
+  },
+  "ETH_1m_LightGBM_fixed": {
+    "0.5": {
+      "trades": 26161,
+      "trades_per_day": 872.0,
+      "wr": 52.7,
+      "avg_ret_bps": 3.48,
+      "pnl_gross_%": 909.67,
+      "pnl_maker_%": -136.77,
+      "pnl_taker_%": -1706.43,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 19364,
+      "trades_per_day": 645.5,
+      "wr": 53.2,
+      "avg_ret_bps": 3.57,
+      "pnl_gross_%": 690.96,
+      "pnl_maker_%": -83.6,
+      "pnl_taker_%": -1245.44,
+      "sharpe": 1.2,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 11085,
+      "trades_per_day": 369.5,
+      "wr": 54.4,
+      "avg_ret_bps": 3.92,
+      "pnl_gross_%": 435.02,
+      "pnl_maker_%": -8.38,
+      "pnl_taker_%": -673.48,
+      "sharpe": 1.5,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 5775,
+      "trades_per_day": 192.5,
+      "wr": 55.6,
+      "avg_ret_bps": 4.37,
+      "pnl_gross_%": 252.51,
+      "pnl_maker_%": 21.51,
+      "pnl_taker_%": -324.99,
+      "sharpe": 2.2,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 3638,
+      "trades_per_day": 121.3,
+      "wr": 55.2,
+      "avg_ret_bps": 4.27,
+      "pnl_gross_%": 155.47,
+      "pnl_maker_%": 9.95,
+      "pnl_taker_%": -208.33,
+      "sharpe": 2.5,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 1027,
+      "trades_per_day": 34.2,
+      "wr": 57.0,
+      "avg_ret_bps": 5.43,
+      "pnl_gross_%": 55.79,
+      "pnl_maker_%": 14.71,
+      "pnl_taker_%": -46.91,
+      "sharpe": 5.5,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 156,
+      "trades_per_day": 5.2,
+      "wr": 57.1,
+      "avg_ret_bps": 5.31,
+      "pnl_gross_%": 8.28,
+      "pnl_maker_%": 2.04,
+      "pnl_taker_%": -7.32,
+      "sharpe": 14.6,
+      "folds": 3
+    }
+  },
+  "ETH_1m_ExtraTrees_tripl": {
+    "0.5": {
+      "trades": 34588,
+      "trades_per_day": 1152.9,
+      "wr": 50.5,
+      "avg_ret_bps": 2.05,
+      "pnl_gross_%": 709.83,
+      "pnl_maker_%": -673.69,
+      "pnl_taker_%": -2748.97,
+      "sharpe": 0.9,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 1241,
+      "trades_per_day": 41.4,
+      "wr": 52.2,
+      "avg_ret_bps": 5.09,
+      "pnl_gross_%": 63.11,
+      "pnl_maker_%": 13.47,
+      "pnl_taker_%": -60.99,
+      "sharpe": 6.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 19,
+      "trades_per_day": 0.6,
+      "wr": 63.2,
+      "avg_ret_bps": 20.08,
+      "pnl_gross_%": 3.82,
+      "pnl_maker_%": 3.06,
+      "pnl_taker_%": 1.92,
+      "sharpe": 136.1,
+      "folds": 3
+    }
+  },
+  "ETH_1m_ExtraTrees_fixed": {
+    "0.5": {
+      "trades": 26161,
+      "trades_per_day": 872.0,
+      "wr": 53.2,
+      "avg_ret_bps": 3.8,
+      "pnl_gross_%": 994.2,
+      "pnl_maker_%": -52.24,
+      "pnl_taker_%": -1621.9,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 15472,
+      "trades_per_day": 515.7,
+      "wr": 54.4,
+      "avg_ret_bps": 3.95,
+      "pnl_gross_%": 611.19,
+      "pnl_maker_%": -7.69,
+      "pnl_taker_%": -936.01,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 4586,
+      "trades_per_day": 152.9,
+      "wr": 56.6,
+      "avg_ret_bps": 4.76,
+      "pnl_gross_%": 218.08,
+      "pnl_maker_%": 34.64,
+      "pnl_taker_%": -240.52,
+      "sharpe": 2.5,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1187,
+      "trades_per_day": 39.6,
+      "wr": 55.0,
+      "avg_ret_bps": 4.41,
+      "pnl_gross_%": 52.31,
+      "pnl_maker_%": 4.83,
+      "pnl_taker_%": -66.39,
+      "sharpe": 3.5,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 388,
+      "trades_per_day": 12.9,
+      "wr": 48.7,
+      "avg_ret_bps": 4.1,
+      "pnl_gross_%": 15.92,
+      "pnl_maker_%": 0.4,
+      "pnl_taker_%": -22.88,
+      "sharpe": 4.7,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 2,
+      "trades_per_day": 0.1,
+      "wr": 0.0,
+      "avg_ret_bps": -17.69,
+      "pnl_gross_%": -0.35,
+      "pnl_maker_%": -0.43,
+      "pnl_taker_%": -0.55,
+      "sharpe": -3357.4,
+      "folds": 3
+    }
+  },
+  "ETH_1m_RandomForest_tripl": {
+    "0.5": {
+      "trades": 34588,
+      "trades_per_day": 1152.9,
+      "wr": 50.0,
+      "avg_ret_bps": 2.02,
+      "pnl_gross_%": 698.06,
+      "pnl_maker_%": -685.46,
+      "pnl_taker_%": -2760.74,
+      "sharpe": 0.9,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 6966,
+      "trades_per_day": 232.2,
+      "wr": 52.1,
+      "avg_ret_bps": 3.38,
+      "pnl_gross_%": 235.17,
+      "pnl_maker_%": -43.47,
+      "pnl_taker_%": -461.43,
+      "sharpe": 2.3,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 867,
+      "trades_per_day": 28.9,
+      "wr": 53.9,
+      "avg_ret_bps": 6.41,
+      "pnl_gross_%": 55.6,
+      "pnl_maker_%": 20.92,
+      "pnl_taker_%": -31.1,
+      "sharpe": 7.9,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 163,
+      "trades_per_day": 5.4,
+      "wr": 54.6,
+      "avg_ret_bps": 7.82,
+      "pnl_gross_%": 12.75,
+      "pnl_maker_%": 6.23,
+      "pnl_taker_%": -3.55,
+      "sharpe": 21.1,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 30,
+      "trades_per_day": 1.0,
+      "wr": 46.7,
+      "avg_ret_bps": 3.01,
+      "pnl_gross_%": 0.9,
+      "pnl_maker_%": -0.3,
+      "pnl_taker_%": -2.1,
+      "sharpe": 19.2,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 1,
+      "trades_per_day": 0.0,
+      "wr": 0.0,
+      "avg_ret_bps": -41.07,
+      "pnl_gross_%": -0.41,
+      "pnl_maker_%": -0.45,
+      "pnl_taker_%": -0.51,
+      "sharpe": -12368689945.1,
+      "folds": 3
+    }
+  },
+  "ETH_1m_RandomForest_fixed": {
+    "0.5": {
+      "trades": 26161,
+      "trades_per_day": 872.0,
+      "wr": 53.0,
+      "avg_ret_bps": 3.74,
+      "pnl_gross_%": 978.33,
+      "pnl_maker_%": -68.11,
+      "pnl_taker_%": -1637.77,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 18016,
+      "trades_per_day": 600.5,
+      "wr": 54.0,
+      "avg_ret_bps": 3.82,
+      "pnl_gross_%": 687.37,
+      "pnl_maker_%": -33.27,
+      "pnl_taker_%": -1114.23,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 8220,
+      "trades_per_day": 274.0,
+      "wr": 55.3,
+      "avg_ret_bps": 4.11,
+      "pnl_gross_%": 338.11,
+      "pnl_maker_%": 9.31,
+      "pnl_taker_%": -483.89,
+      "sharpe": 1.8,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 3248,
+      "trades_per_day": 108.3,
+      "wr": 55.5,
+      "avg_ret_bps": 4.33,
+      "pnl_gross_%": 140.68,
+      "pnl_maker_%": 10.76,
+      "pnl_taker_%": -184.12,
+      "sharpe": 2.6,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 1792,
+      "trades_per_day": 59.7,
+      "wr": 55.8,
+      "avg_ret_bps": 4.23,
+      "pnl_gross_%": 75.77,
+      "pnl_maker_%": 4.09,
+      "pnl_taker_%": -103.43,
+      "sharpe": 3.1,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 246,
+      "trades_per_day": 8.2,
+      "wr": 55.3,
+      "avg_ret_bps": 6.39,
+      "pnl_gross_%": 15.73,
+      "pnl_maker_%": 5.89,
+      "pnl_taker_%": -8.87,
+      "sharpe": 11.5,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 1,
+      "trades_per_day": 0.0,
+      "wr": 0.0,
+      "avg_ret_bps": -20.86,
+      "pnl_gross_%": -0.21,
+      "pnl_maker_%": -0.25,
+      "pnl_taker_%": -0.31,
+      "sharpe": -6283064639.6,
+      "folds": 3
+    }
+  },
+  "SOL_1m_LightGBM_tripl": {
+    "0.5": {
+      "trades": 34388,
+      "trades_per_day": 1146.3,
+      "wr": 50.8,
+      "avg_ret_bps": 2.77,
+      "pnl_gross_%": 952.29,
+      "pnl_maker_%": -423.23,
+      "pnl_taker_%": -2486.51,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 18761,
+      "trades_per_day": 625.4,
+      "wr": 50.7,
+      "avg_ret_bps": 3.05,
+      "pnl_gross_%": 572.99,
+      "pnl_maker_%": -177.45,
+      "pnl_taker_%": -1303.11,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 5569,
+      "trades_per_day": 185.6,
+      "wr": 50.3,
+      "avg_ret_bps": 3.86,
+      "pnl_gross_%": 214.84,
+      "pnl_maker_%": -7.92,
+      "pnl_taker_%": -342.06,
+      "sharpe": 2.4,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1532,
+      "trades_per_day": 51.1,
+      "wr": 47.6,
+      "avg_ret_bps": 3.77,
+      "pnl_gross_%": 57.78,
+      "pnl_maker_%": -3.5,
+      "pnl_taker_%": -95.42,
+      "sharpe": 3.4,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 764,
+      "trades_per_day": 25.5,
+      "wr": 44.5,
+      "avg_ret_bps": 2.2,
+      "pnl_gross_%": 16.81,
+      "pnl_maker_%": -13.75,
+      "pnl_taker_%": -59.59,
+      "sharpe": 2.5,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 91,
+      "trades_per_day": 3.0,
+      "wr": 49.5,
+      "avg_ret_bps": 6.06,
+      "pnl_gross_%": 5.51,
+      "pnl_maker_%": 1.87,
+      "pnl_taker_%": -3.59,
+      "sharpe": 16.8,
+      "folds": 3
+    }
+  },
+  "SOL_1m_LightGBM_fixed": {
+    "0.5": {
+      "trades": 29713,
+      "trades_per_day": 990.4,
+      "wr": 52.0,
+      "avg_ret_bps": 4.01,
+      "pnl_gross_%": 1190.24,
+      "pnl_maker_%": 1.72,
+      "pnl_taker_%": -1781.06,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 21197,
+      "trades_per_day": 706.6,
+      "wr": 52.9,
+      "avg_ret_bps": 4.31,
+      "pnl_gross_%": 913.77,
+      "pnl_maker_%": 65.89,
+      "pnl_taker_%": -1205.93,
+      "sharpe": 1.2,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 11698,
+      "trades_per_day": 389.9,
+      "wr": 53.7,
+      "avg_ret_bps": 4.62,
+      "pnl_gross_%": 539.99,
+      "pnl_maker_%": 72.07,
+      "pnl_taker_%": -629.81,
+      "sharpe": 1.5,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 6574,
+      "trades_per_day": 219.1,
+      "wr": 53.9,
+      "avg_ret_bps": 4.78,
+      "pnl_gross_%": 314.51,
+      "pnl_maker_%": 51.55,
+      "pnl_taker_%": -342.89,
+      "sharpe": 1.9,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 4330,
+      "trades_per_day": 144.3,
+      "wr": 54.1,
+      "avg_ret_bps": 5.31,
+      "pnl_gross_%": 229.94,
+      "pnl_maker_%": 56.74,
+      "pnl_taker_%": -203.06,
+      "sharpe": 2.5,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 1138,
+      "trades_per_day": 37.9,
+      "wr": 53.4,
+      "avg_ret_bps": 5.41,
+      "pnl_gross_%": 61.55,
+      "pnl_maker_%": 16.03,
+      "pnl_taker_%": -52.25,
+      "sharpe": 4.5,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 63,
+      "trades_per_day": 2.1,
+      "wr": 44.4,
+      "avg_ret_bps": -1.39,
+      "pnl_gross_%": -0.88,
+      "pnl_maker_%": -3.4,
+      "pnl_taker_%": -7.18,
+      "sharpe": -4.6,
+      "folds": 3
+    }
+  },
+  "SOL_1m_ExtraTrees_tripl": {
+    "0.5": {
+      "trades": 34388,
+      "trades_per_day": 1146.3,
+      "wr": 50.3,
+      "avg_ret_bps": 2.66,
+      "pnl_gross_%": 915.06,
+      "pnl_maker_%": -460.46,
+      "pnl_taker_%": -2523.74,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 3464,
+      "trades_per_day": 115.5,
+      "wr": 50.5,
+      "avg_ret_bps": 4.59,
+      "pnl_gross_%": 159.05,
+      "pnl_maker_%": 20.49,
+      "pnl_taker_%": -187.35,
+      "sharpe": 3.0,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 671,
+      "trades_per_day": 22.4,
+      "wr": 47.4,
+      "avg_ret_bps": 6.09,
+      "pnl_gross_%": 40.89,
+      "pnl_maker_%": 14.05,
+      "pnl_taker_%": -26.21,
+      "sharpe": 6.2,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 267,
+      "trades_per_day": 8.9,
+      "wr": 48.3,
+      "avg_ret_bps": 7.47,
+      "pnl_gross_%": 19.94,
+      "pnl_maker_%": 9.26,
+      "pnl_taker_%": -6.76,
+      "sharpe": 10.4,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 104,
+      "trades_per_day": 3.5,
+      "wr": 57.7,
+      "avg_ret_bps": 18.32,
+      "pnl_gross_%": 19.05,
+      "pnl_maker_%": 14.89,
+      "pnl_taker_%": 8.65,
+      "sharpe": 38.3,
+      "folds": 3
+    }
+  },
+  "SOL_1m_ExtraTrees_fixed": {
+    "0.5": {
+      "trades": 29713,
+      "trades_per_day": 990.4,
+      "wr": 52.2,
+      "avg_ret_bps": 4.09,
+      "pnl_gross_%": 1215.22,
+      "pnl_maker_%": 26.7,
+      "pnl_taker_%": -1756.08,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 16097,
+      "trades_per_day": 536.6,
+      "wr": 53.5,
+      "avg_ret_bps": 4.67,
+      "pnl_gross_%": 752.47,
+      "pnl_maker_%": 108.59,
+      "pnl_taker_%": -857.23,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 6290,
+      "trades_per_day": 209.7,
+      "wr": 54.3,
+      "avg_ret_bps": 5.31,
+      "pnl_gross_%": 333.93,
+      "pnl_maker_%": 82.33,
+      "pnl_taker_%": -295.07,
+      "sharpe": 2.1,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 2232,
+      "trades_per_day": 74.4,
+      "wr": 54.2,
+      "avg_ret_bps": 6.48,
+      "pnl_gross_%": 144.68,
+      "pnl_maker_%": 55.4,
+      "pnl_taker_%": -78.52,
+      "sharpe": 3.6,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 1078,
+      "trades_per_day": 35.9,
+      "wr": 51.9,
+      "avg_ret_bps": 6.62,
+      "pnl_gross_%": 71.41,
+      "pnl_maker_%": 28.29,
+      "pnl_taker_%": -36.39,
+      "sharpe": 4.5,
+      "folds": 3
+    }
+  },
+  "SOL_1m_RandomForest_tripl": {
+    "0.5": {
+      "trades": 34388,
+      "trades_per_day": 1146.3,
+      "wr": 50.9,
+      "avg_ret_bps": 2.77,
+      "pnl_gross_%": 954.02,
+      "pnl_maker_%": -421.5,
+      "pnl_taker_%": -2484.78,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 9231,
+      "trades_per_day": 307.7,
+      "wr": 50.4,
+      "avg_ret_bps": 3.57,
+      "pnl_gross_%": 329.09,
+      "pnl_maker_%": -40.15,
+      "pnl_taker_%": -594.01,
+      "sharpe": 1.8,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 1593,
+      "trades_per_day": 53.1,
+      "wr": 48.0,
+      "avg_ret_bps": 5.23,
+      "pnl_gross_%": 83.28,
+      "pnl_maker_%": 19.56,
+      "pnl_taker_%": -76.02,
+      "sharpe": 4.1,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 649,
+      "trades_per_day": 21.6,
+      "wr": 47.3,
+      "avg_ret_bps": 6.23,
+      "pnl_gross_%": 40.46,
+      "pnl_maker_%": 14.5,
+      "pnl_taker_%": -24.44,
+      "sharpe": 6.4,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 435,
+      "trades_per_day": 14.5,
+      "wr": 44.6,
+      "avg_ret_bps": 5.58,
+      "pnl_gross_%": 24.28,
+      "pnl_maker_%": 6.88,
+      "pnl_taker_%": -19.22,
+      "sharpe": 6.3,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 214,
+      "trades_per_day": 7.1,
+      "wr": 47.2,
+      "avg_ret_bps": 6.59,
+      "pnl_gross_%": 14.1,
+      "pnl_maker_%": 5.54,
+      "pnl_taker_%": -7.3,
+      "sharpe": 10.4,
+      "folds": 3
+    }
+  },
+  "SOL_1m_RandomForest_fixed": {
+    "0.5": {
+      "trades": 29713,
+      "trades_per_day": 990.4,
+      "wr": 52.2,
+      "avg_ret_bps": 4.06,
+      "pnl_gross_%": 1205.45,
+      "pnl_maker_%": 16.93,
+      "pnl_taker_%": -1765.85,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 18838,
+      "trades_per_day": 627.9,
+      "wr": 53.1,
+      "avg_ret_bps": 4.38,
+      "pnl_gross_%": 825.51,
+      "pnl_maker_%": 71.99,
+      "pnl_taker_%": -1058.29,
+      "sharpe": 1.2,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 9560,
+      "trades_per_day": 318.7,
+      "wr": 53.8,
+      "avg_ret_bps": 4.74,
+      "pnl_gross_%": 453.25,
+      "pnl_maker_%": 70.85,
+      "pnl_taker_%": -502.75,
+      "sharpe": 1.7,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 4761,
+      "trades_per_day": 158.7,
+      "wr": 53.9,
+      "avg_ret_bps": 5.13,
+      "pnl_gross_%": 244.13,
+      "pnl_maker_%": 53.69,
+      "pnl_taker_%": -231.97,
+      "sharpe": 2.2,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 2960,
+      "trades_per_day": 98.7,
+      "wr": 54.3,
+      "avg_ret_bps": 5.87,
+      "pnl_gross_%": 173.7,
+      "pnl_maker_%": 55.3,
+      "pnl_taker_%": -122.3,
+      "sharpe": 3.0,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 653,
+      "trades_per_day": 21.8,
+      "wr": 51.3,
+      "avg_ret_bps": 7.21,
+      "pnl_gross_%": 47.1,
+      "pnl_maker_%": 20.98,
+      "pnl_taker_%": -18.2,
+      "sharpe": 6.2,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 4,
+      "trades_per_day": 0.1,
+      "wr": 50.0,
+      "avg_ret_bps": 13.45,
+      "pnl_gross_%": 0.54,
+      "pnl_maker_%": 0.38,
+      "pnl_taker_%": 0.14,
+      "sharpe": 172.6,
+      "folds": 3
+    }
+  },
+  "BTC_3m_LightGBM_tripl": {
+    "0.5": {
+      "trades": 10635,
+      "trades_per_day": 354.5,
+      "wr": 50.9,
+      "avg_ret_bps": 3.36,
+      "pnl_gross_%": 357.32,
+      "pnl_maker_%": -68.08,
+      "pnl_taker_%": -706.18,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 7497,
+      "trades_per_day": 249.9,
+      "wr": 52.1,
+      "avg_ret_bps": 3.87,
+      "pnl_gross_%": 290.25,
+      "pnl_maker_%": -9.63,
+      "pnl_taker_%": -459.45,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 3697,
+      "trades_per_day": 123.2,
+      "wr": 53.7,
+      "avg_ret_bps": 4.76,
+      "pnl_gross_%": 175.92,
+      "pnl_maker_%": 28.04,
+      "pnl_taker_%": -193.78,
+      "sharpe": 2.3,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1626,
+      "trades_per_day": 54.2,
+      "wr": 56.9,
+      "avg_ret_bps": 6.32,
+      "pnl_gross_%": 102.77,
+      "pnl_maker_%": 37.73,
+      "pnl_taker_%": -59.83,
+      "sharpe": 4.2,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 908,
+      "trades_per_day": 30.3,
+      "wr": 58.3,
+      "avg_ret_bps": 7.8,
+      "pnl_gross_%": 70.79,
+      "pnl_maker_%": 34.47,
+      "pnl_taker_%": -20.01,
+      "sharpe": 6.4,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 193,
+      "trades_per_day": 6.4,
+      "wr": 65.3,
+      "avg_ret_bps": 12.29,
+      "pnl_gross_%": 23.73,
+      "pnl_maker_%": 16.01,
+      "pnl_taker_%": 4.43,
+      "sharpe": 19.5,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 32,
+      "trades_per_day": 1.1,
+      "wr": 65.6,
+      "avg_ret_bps": 18.01,
+      "pnl_gross_%": 5.76,
+      "pnl_maker_%": 4.48,
+      "pnl_taker_%": 2.56,
+      "sharpe": 58.9,
+      "folds": 3
+    }
+  },
+  "BTC_3m_LightGBM_fixed": {
+    "0.5": {
+      "trades": 9358,
+      "trades_per_day": 311.9,
+      "wr": 52.6,
+      "avg_ret_bps": 4.62,
+      "pnl_gross_%": 432.22,
+      "pnl_maker_%": 57.9,
+      "pnl_taker_%": -503.58,
+      "sharpe": 1.2,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 7040,
+      "trades_per_day": 234.7,
+      "wr": 53.1,
+      "avg_ret_bps": 5.05,
+      "pnl_gross_%": 355.29,
+      "pnl_maker_%": 73.69,
+      "pnl_taker_%": -348.71,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 4137,
+      "trades_per_day": 137.9,
+      "wr": 53.8,
+      "avg_ret_bps": 5.27,
+      "pnl_gross_%": 218.22,
+      "pnl_maker_%": 52.74,
+      "pnl_taker_%": -195.48,
+      "sharpe": 1.8,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 2305,
+      "trades_per_day": 76.8,
+      "wr": 54.7,
+      "avg_ret_bps": 6.11,
+      "pnl_gross_%": 140.83,
+      "pnl_maker_%": 48.63,
+      "pnl_taker_%": -89.67,
+      "sharpe": 2.5,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 1546,
+      "trades_per_day": 51.5,
+      "wr": 54.9,
+      "avg_ret_bps": 6.84,
+      "pnl_gross_%": 105.72,
+      "pnl_maker_%": 43.88,
+      "pnl_taker_%": -48.88,
+      "sharpe": 3.2,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 561,
+      "trades_per_day": 18.7,
+      "wr": 56.7,
+      "avg_ret_bps": 9.32,
+      "pnl_gross_%": 52.3,
+      "pnl_maker_%": 29.86,
+      "pnl_taker_%": -3.8,
+      "sharpe": 6.2,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 200,
+      "trades_per_day": 6.7,
+      "wr": 59.0,
+      "avg_ret_bps": 13.6,
+      "pnl_gross_%": 27.2,
+      "pnl_maker_%": 19.2,
+      "pnl_taker_%": 7.2,
+      "sharpe": 12.1,
+      "folds": 3
+    }
+  },
+  "BTC_3m_ExtraTrees_tripl": {
+    "0.5": {
+      "trades": 10635,
+      "trades_per_day": 354.5,
+      "wr": 52.4,
+      "avg_ret_bps": 3.82,
+      "pnl_gross_%": 406.65,
+      "pnl_maker_%": -18.75,
+      "pnl_taker_%": -656.85,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 2632,
+      "trades_per_day": 87.7,
+      "wr": 55.8,
+      "avg_ret_bps": 5.91,
+      "pnl_gross_%": 155.43,
+      "pnl_maker_%": 50.15,
+      "pnl_taker_%": -107.77,
+      "sharpe": 3.1,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 156,
+      "trades_per_day": 5.2,
+      "wr": 57.7,
+      "avg_ret_bps": 11.45,
+      "pnl_gross_%": 17.86,
+      "pnl_maker_%": 11.62,
+      "pnl_taker_%": 2.26,
+      "sharpe": 15.6,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 3,
+      "trades_per_day": 0.1,
+      "wr": 100.0,
+      "avg_ret_bps": 37.36,
+      "pnl_gross_%": 1.12,
+      "pnl_maker_%": 1.0,
+      "pnl_taker_%": 0.82,
+      "sharpe": 10274.6,
+      "folds": 3
+    }
+  },
+  "BTC_3m_ExtraTrees_fixed": {
+    "0.5": {
+      "trades": 9358,
+      "trades_per_day": 311.9,
+      "wr": 52.9,
+      "avg_ret_bps": 4.42,
+      "pnl_gross_%": 413.8,
+      "pnl_maker_%": 39.48,
+      "pnl_taker_%": -522.0,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 5001,
+      "trades_per_day": 166.7,
+      "wr": 54.0,
+      "avg_ret_bps": 5.26,
+      "pnl_gross_%": 263.13,
+      "pnl_maker_%": 63.09,
+      "pnl_taker_%": -236.97,
+      "sharpe": 1.6,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 1097,
+      "trades_per_day": 36.6,
+      "wr": 54.5,
+      "avg_ret_bps": 6.86,
+      "pnl_gross_%": 75.31,
+      "pnl_maker_%": 31.43,
+      "pnl_taker_%": -34.39,
+      "sharpe": 3.4,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 512,
+      "trades_per_day": 17.1,
+      "wr": 56.6,
+      "avg_ret_bps": 9.06,
+      "pnl_gross_%": 46.38,
+      "pnl_maker_%": 25.9,
+      "pnl_taker_%": -4.82,
+      "sharpe": 5.7,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 342,
+      "trades_per_day": 11.4,
+      "wr": 57.3,
+      "avg_ret_bps": 11.38,
+      "pnl_gross_%": 38.91,
+      "pnl_maker_%": 25.23,
+      "pnl_taker_%": 4.71,
+      "sharpe": 8.3,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 109,
+      "trades_per_day": 3.6,
+      "wr": 52.3,
+      "avg_ret_bps": 9.6,
+      "pnl_gross_%": 10.46,
+      "pnl_maker_%": 6.1,
+      "pnl_taker_%": -0.44,
+      "sharpe": 10.8,
+      "folds": 3
+    }
+  },
+  "BTC_3m_RandomForest_tripl": {
+    "0.5": {
+      "trades": 10635,
+      "trades_per_day": 354.5,
+      "wr": 50.9,
+      "avg_ret_bps": 3.5,
+      "pnl_gross_%": 372.3,
+      "pnl_maker_%": -53.1,
+      "pnl_taker_%": -691.2,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 5021,
+      "trades_per_day": 167.4,
+      "wr": 53.1,
+      "avg_ret_bps": 4.76,
+      "pnl_gross_%": 238.78,
+      "pnl_maker_%": 37.94,
+      "pnl_taker_%": -263.32,
+      "sharpe": 2.0,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 1243,
+      "trades_per_day": 41.4,
+      "wr": 56.6,
+      "avg_ret_bps": 6.83,
+      "pnl_gross_%": 84.94,
+      "pnl_maker_%": 35.22,
+      "pnl_taker_%": -39.36,
+      "sharpe": 4.4,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 367,
+      "trades_per_day": 12.2,
+      "wr": 53.1,
+      "avg_ret_bps": 7.67,
+      "pnl_gross_%": 28.17,
+      "pnl_maker_%": 13.49,
+      "pnl_taker_%": -8.53,
+      "sharpe": 6.8,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 219,
+      "trades_per_day": 7.3,
+      "wr": 52.1,
+      "avg_ret_bps": 8.95,
+      "pnl_gross_%": 19.6,
+      "pnl_maker_%": 10.84,
+      "pnl_taker_%": -2.3,
+      "sharpe": 9.2,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 60,
+      "trades_per_day": 2.0,
+      "wr": 58.3,
+      "avg_ret_bps": 15.65,
+      "pnl_gross_%": 9.39,
+      "pnl_maker_%": 6.99,
+      "pnl_taker_%": 3.39,
+      "sharpe": 28.9,
+      "folds": 3
+    }
+  },
+  "BTC_3m_RandomForest_fixed": {
+    "0.5": {
+      "trades": 9358,
+      "trades_per_day": 311.9,
+      "wr": 52.8,
+      "avg_ret_bps": 4.45,
+      "pnl_gross_%": 416.01,
+      "pnl_maker_%": 41.69,
+      "pnl_taker_%": -519.79,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 6115,
+      "trades_per_day": 203.8,
+      "wr": 53.5,
+      "avg_ret_bps": 4.9,
+      "pnl_gross_%": 299.45,
+      "pnl_maker_%": 54.85,
+      "pnl_taker_%": -312.05,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 2195,
+      "trades_per_day": 73.2,
+      "wr": 55.4,
+      "avg_ret_bps": 6.72,
+      "pnl_gross_%": 147.46,
+      "pnl_maker_%": 59.66,
+      "pnl_taker_%": -72.04,
+      "sharpe": 2.6,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 938,
+      "trades_per_day": 31.3,
+      "wr": 53.9,
+      "avg_ret_bps": 6.81,
+      "pnl_gross_%": 63.91,
+      "pnl_maker_%": 26.39,
+      "pnl_taker_%": -29.89,
+      "sharpe": 3.6,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 667,
+      "trades_per_day": 22.2,
+      "wr": 55.6,
+      "avg_ret_bps": 8.44,
+      "pnl_gross_%": 56.32,
+      "pnl_maker_%": 29.64,
+      "pnl_taker_%": -10.38,
+      "sharpe": 4.9,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 373,
+      "trades_per_day": 12.4,
+      "wr": 56.6,
+      "avg_ret_bps": 10.26,
+      "pnl_gross_%": 38.28,
+      "pnl_maker_%": 23.36,
+      "pnl_taker_%": 0.98,
+      "sharpe": 7.1,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 211,
+      "trades_per_day": 7.0,
+      "wr": 56.9,
+      "avg_ret_bps": 13.46,
+      "pnl_gross_%": 28.4,
+      "pnl_maker_%": 19.96,
+      "pnl_taker_%": 7.3,
+      "sharpe": 11.1,
+      "folds": 3
+    }
+  },
+  "ETH_3m_LightGBM_tripl": {
+    "0.5": {
+      "trades": 10530,
+      "trades_per_day": 351.0,
+      "wr": 50.8,
+      "avg_ret_bps": 4.17,
+      "pnl_gross_%": 438.97,
+      "pnl_maker_%": 17.77,
+      "pnl_taker_%": -614.03,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 6979,
+      "trades_per_day": 232.6,
+      "wr": 51.7,
+      "avg_ret_bps": 4.85,
+      "pnl_gross_%": 338.46,
+      "pnl_maker_%": 59.3,
+      "pnl_taker_%": -359.44,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 3104,
+      "trades_per_day": 103.5,
+      "wr": 52.5,
+      "avg_ret_bps": 5.78,
+      "pnl_gross_%": 179.35,
+      "pnl_maker_%": 55.19,
+      "pnl_taker_%": -131.05,
+      "sharpe": 2.2,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1224,
+      "trades_per_day": 40.8,
+      "wr": 53.2,
+      "avg_ret_bps": 6.47,
+      "pnl_gross_%": 79.18,
+      "pnl_maker_%": 30.22,
+      "pnl_taker_%": -43.22,
+      "sharpe": 3.6,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 663,
+      "trades_per_day": 22.1,
+      "wr": 55.7,
+      "avg_ret_bps": 8.44,
+      "pnl_gross_%": 55.97,
+      "pnl_maker_%": 29.45,
+      "pnl_taker_%": -10.33,
+      "sharpe": 6.1,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 83,
+      "trades_per_day": 2.8,
+      "wr": 69.9,
+      "avg_ret_bps": 14.78,
+      "pnl_gross_%": 12.27,
+      "pnl_maker_%": 8.95,
+      "pnl_taker_%": 3.97,
+      "sharpe": 32.7,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 1,
+      "trades_per_day": 0.0,
+      "wr": 100.0,
+      "avg_ret_bps": 39.93,
+      "pnl_gross_%": 0.4,
+      "pnl_maker_%": 0.36,
+      "pnl_taker_%": 0.3,
+      "sharpe": 6943381716.8,
+      "folds": 3
+    }
+  },
+  "ETH_3m_LightGBM_fixed": {
+    "0.5": {
+      "trades": 10286,
+      "trades_per_day": 342.9,
+      "wr": 52.2,
+      "avg_ret_bps": 4.11,
+      "pnl_gross_%": 423.05,
+      "pnl_maker_%": 11.61,
+      "pnl_taker_%": -605.55,
+      "sharpe": 0.8,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 7962,
+      "trades_per_day": 265.4,
+      "wr": 52.8,
+      "avg_ret_bps": 4.27,
+      "pnl_gross_%": 340.19,
+      "pnl_maker_%": 21.71,
+      "pnl_taker_%": -456.01,
+      "sharpe": 0.9,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 4884,
+      "trades_per_day": 162.8,
+      "wr": 53.9,
+      "avg_ret_bps": 4.84,
+      "pnl_gross_%": 236.24,
+      "pnl_maker_%": 40.88,
+      "pnl_taker_%": -252.16,
+      "sharpe": 1.2,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 2699,
+      "trades_per_day": 90.0,
+      "wr": 54.6,
+      "avg_ret_bps": 6.21,
+      "pnl_gross_%": 167.57,
+      "pnl_maker_%": 59.61,
+      "pnl_taker_%": -102.33,
+      "sharpe": 1.9,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 1755,
+      "trades_per_day": 58.5,
+      "wr": 53.8,
+      "avg_ret_bps": 6.99,
+      "pnl_gross_%": 122.74,
+      "pnl_maker_%": 52.54,
+      "pnl_taker_%": -52.76,
+      "sharpe": 2.5,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 459,
+      "trades_per_day": 15.3,
+      "wr": 57.5,
+      "avg_ret_bps": 11.32,
+      "pnl_gross_%": 51.94,
+      "pnl_maker_%": 33.58,
+      "pnl_taker_%": 6.04,
+      "sharpe": 6.3,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 54,
+      "trades_per_day": 1.8,
+      "wr": 50.0,
+      "avg_ret_bps": 5.22,
+      "pnl_gross_%": 2.82,
+      "pnl_maker_%": 0.66,
+      "pnl_taker_%": -2.58,
+      "sharpe": 7.3,
+      "folds": 3
+    }
+  },
+  "ETH_3m_ExtraTrees_tripl": {
+    "0.5": {
+      "trades": 10530,
+      "trades_per_day": 351.0,
+      "wr": 51.3,
+      "avg_ret_bps": 4.36,
+      "pnl_gross_%": 458.65,
+      "pnl_maker_%": 37.45,
+      "pnl_taker_%": -594.35,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 2117,
+      "trades_per_day": 70.6,
+      "wr": 51.6,
+      "avg_ret_bps": 6.49,
+      "pnl_gross_%": 137.44,
+      "pnl_maker_%": 52.76,
+      "pnl_taker_%": -74.26,
+      "sharpe": 2.7,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 112,
+      "trades_per_day": 3.7,
+      "wr": 45.5,
+      "avg_ret_bps": 9.24,
+      "pnl_gross_%": 10.35,
+      "pnl_maker_%": 5.87,
+      "pnl_taker_%": -0.85,
+      "sharpe": 9.1,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 5,
+      "trades_per_day": 0.2,
+      "wr": 60.0,
+      "avg_ret_bps": 25.97,
+      "pnl_gross_%": 1.3,
+      "pnl_maker_%": 1.1,
+      "pnl_taker_%": 0.8,
+      "sharpe": 148.4,
+      "folds": 3
+    }
+  },
+  "ETH_3m_ExtraTrees_fixed": {
+    "0.5": {
+      "trades": 10286,
+      "trades_per_day": 342.9,
+      "wr": 53.0,
+      "avg_ret_bps": 4.36,
+      "pnl_gross_%": 448.15,
+      "pnl_maker_%": 36.71,
+      "pnl_taker_%": -580.45,
+      "sharpe": 0.8,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 5958,
+      "trades_per_day": 198.6,
+      "wr": 54.5,
+      "avg_ret_bps": 4.68,
+      "pnl_gross_%": 279.13,
+      "pnl_maker_%": 40.81,
+      "pnl_taker_%": -316.67,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 1477,
+      "trades_per_day": 49.2,
+      "wr": 54.5,
+      "avg_ret_bps": 6.31,
+      "pnl_gross_%": 93.19,
+      "pnl_maker_%": 34.11,
+      "pnl_taker_%": -54.51,
+      "sharpe": 2.3,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 376,
+      "trades_per_day": 12.5,
+      "wr": 54.8,
+      "avg_ret_bps": 9.1,
+      "pnl_gross_%": 34.21,
+      "pnl_maker_%": 19.17,
+      "pnl_taker_%": -3.39,
+      "sharpe": 5.0,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 151,
+      "trades_per_day": 5.0,
+      "wr": 56.3,
+      "avg_ret_bps": 14.49,
+      "pnl_gross_%": 21.88,
+      "pnl_maker_%": 15.84,
+      "pnl_taker_%": 6.78,
+      "sharpe": 11.9,
+      "folds": 3
+    }
+  },
+  "ETH_3m_RandomForest_tripl": {
+    "0.5": {
+      "trades": 10530,
+      "trades_per_day": 351.0,
+      "wr": 51.0,
+      "avg_ret_bps": 4.43,
+      "pnl_gross_%": 466.42,
+      "pnl_maker_%": 45.22,
+      "pnl_taker_%": -586.58,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 3990,
+      "trades_per_day": 133.0,
+      "wr": 51.4,
+      "avg_ret_bps": 5.73,
+      "pnl_gross_%": 228.61,
+      "pnl_maker_%": 69.01,
+      "pnl_taker_%": -170.39,
+      "sharpe": 1.9,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 966,
+      "trades_per_day": 32.2,
+      "wr": 51.9,
+      "avg_ret_bps": 6.93,
+      "pnl_gross_%": 66.98,
+      "pnl_maker_%": 28.34,
+      "pnl_taker_%": -29.62,
+      "sharpe": 3.5,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 250,
+      "trades_per_day": 8.3,
+      "wr": 50.0,
+      "avg_ret_bps": 7.49,
+      "pnl_gross_%": 18.72,
+      "pnl_maker_%": 8.72,
+      "pnl_taker_%": -6.28,
+      "sharpe": 5.9,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 71,
+      "trades_per_day": 2.4,
+      "wr": 49.3,
+      "avg_ret_bps": 8.31,
+      "pnl_gross_%": 5.9,
+      "pnl_maker_%": 3.06,
+      "pnl_taker_%": -1.2,
+      "sharpe": 11.8,
+      "folds": 3
+    }
+  },
+  "ETH_3m_RandomForest_fixed": {
+    "0.5": {
+      "trades": 10286,
+      "trades_per_day": 342.9,
+      "wr": 53.1,
+      "avg_ret_bps": 4.43,
+      "pnl_gross_%": 455.32,
+      "pnl_maker_%": 43.88,
+      "pnl_taker_%": -573.28,
+      "sharpe": 0.9,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 7108,
+      "trades_per_day": 236.9,
+      "wr": 54.1,
+      "avg_ret_bps": 4.66,
+      "pnl_gross_%": 331.06,
+      "pnl_maker_%": 46.74,
+      "pnl_taker_%": -379.74,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 3272,
+      "trades_per_day": 109.1,
+      "wr": 54.5,
+      "avg_ret_bps": 4.49,
+      "pnl_gross_%": 146.87,
+      "pnl_maker_%": 15.99,
+      "pnl_taker_%": -180.33,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1230,
+      "trades_per_day": 41.0,
+      "wr": 52.8,
+      "avg_ret_bps": 5.47,
+      "pnl_gross_%": 67.28,
+      "pnl_maker_%": 18.08,
+      "pnl_taker_%": -55.72,
+      "sharpe": 2.2,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 598,
+      "trades_per_day": 19.9,
+      "wr": 51.7,
+      "avg_ret_bps": 7.86,
+      "pnl_gross_%": 46.97,
+      "pnl_maker_%": 23.05,
+      "pnl_taker_%": -12.83,
+      "sharpe": 4.0,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 82,
+      "trades_per_day": 2.7,
+      "wr": 56.1,
+      "avg_ret_bps": 13.27,
+      "pnl_gross_%": 10.88,
+      "pnl_maker_%": 7.6,
+      "pnl_taker_%": 2.68,
+      "sharpe": 16.6,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 5,
+      "trades_per_day": 0.2,
+      "wr": 20.0,
+      "avg_ret_bps": -40.31,
+      "pnl_gross_%": -2.02,
+      "pnl_maker_%": -2.22,
+      "pnl_taker_%": -2.52,
+      "sharpe": -226.6,
+      "folds": 3
+    }
+  },
+  "SOL_3m_LightGBM_tripl": {
+    "0.5": {
+      "trades": 10494,
+      "trades_per_day": 349.8,
+      "wr": 51.2,
+      "avg_ret_bps": 5.5,
+      "pnl_gross_%": 577.22,
+      "pnl_maker_%": 157.46,
+      "pnl_taker_%": -472.18,
+      "sharpe": 1.2,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 7246,
+      "trades_per_day": 241.5,
+      "wr": 51.6,
+      "avg_ret_bps": 6.04,
+      "pnl_gross_%": 437.86,
+      "pnl_maker_%": 148.02,
+      "pnl_taker_%": -286.74,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 3812,
+      "trades_per_day": 127.1,
+      "wr": 53.4,
+      "avg_ret_bps": 7.39,
+      "pnl_gross_%": 281.71,
+      "pnl_maker_%": 129.23,
+      "pnl_taker_%": -99.49,
+      "sharpe": 2.2,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1886,
+      "trades_per_day": 62.9,
+      "wr": 53.7,
+      "avg_ret_bps": 8.55,
+      "pnl_gross_%": 161.24,
+      "pnl_maker_%": 85.8,
+      "pnl_taker_%": -27.36,
+      "sharpe": 3.3,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 1165,
+      "trades_per_day": 38.8,
+      "wr": 54.9,
+      "avg_ret_bps": 9.84,
+      "pnl_gross_%": 114.59,
+      "pnl_maker_%": 67.99,
+      "pnl_taker_%": -1.91,
+      "sharpe": 4.8,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 252,
+      "trades_per_day": 8.4,
+      "wr": 53.6,
+      "avg_ret_bps": 9.45,
+      "pnl_gross_%": 23.82,
+      "pnl_maker_%": 13.74,
+      "pnl_taker_%": -1.38,
+      "sharpe": 10.5,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 24,
+      "trades_per_day": 0.8,
+      "wr": 41.7,
+      "avg_ret_bps": 5.1,
+      "pnl_gross_%": 1.22,
+      "pnl_maker_%": 0.26,
+      "pnl_taker_%": -1.18,
+      "sharpe": 17.5,
+      "folds": 3
+    }
+  },
+  "SOL_3m_LightGBM_fixed": {
+    "0.5": {
+      "trades": 11167,
+      "trades_per_day": 372.2,
+      "wr": 51.8,
+      "avg_ret_bps": 5.7,
+      "pnl_gross_%": 636.56,
+      "pnl_maker_%": 189.88,
+      "pnl_taker_%": -480.14,
+      "sharpe": 0.9,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 8525,
+      "trades_per_day": 284.2,
+      "wr": 52.5,
+      "avg_ret_bps": 6.14,
+      "pnl_gross_%": 523.5,
+      "pnl_maker_%": 182.5,
+      "pnl_taker_%": -329.0,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 5055,
+      "trades_per_day": 168.5,
+      "wr": 53.6,
+      "avg_ret_bps": 7.11,
+      "pnl_gross_%": 359.53,
+      "pnl_maker_%": 157.33,
+      "pnl_taker_%": -145.97,
+      "sharpe": 1.5,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 2767,
+      "trades_per_day": 92.2,
+      "wr": 54.5,
+      "avg_ret_bps": 7.84,
+      "pnl_gross_%": 216.84,
+      "pnl_maker_%": 106.16,
+      "pnl_taker_%": -59.86,
+      "sharpe": 2.0,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 1814,
+      "trades_per_day": 60.5,
+      "wr": 55.1,
+      "avg_ret_bps": 9.14,
+      "pnl_gross_%": 165.88,
+      "pnl_maker_%": 93.32,
+      "pnl_taker_%": -15.52,
+      "sharpe": 2.6,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 601,
+      "trades_per_day": 20.0,
+      "wr": 53.4,
+      "avg_ret_bps": 11.57,
+      "pnl_gross_%": 69.56,
+      "pnl_maker_%": 45.52,
+      "pnl_taker_%": 9.46,
+      "sharpe": 4.4,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 182,
+      "trades_per_day": 6.1,
+      "wr": 55.5,
+      "avg_ret_bps": 12.47,
+      "pnl_gross_%": 22.69,
+      "pnl_maker_%": 15.41,
+      "pnl_taker_%": 4.49,
+      "sharpe": 7.9,
+      "folds": 3
+    }
+  },
+  "SOL_3m_ExtraTrees_tripl": {
+    "0.5": {
+      "trades": 10494,
+      "trades_per_day": 349.8,
+      "wr": 50.7,
+      "avg_ret_bps": 5.42,
+      "pnl_gross_%": 568.52,
+      "pnl_maker_%": 148.76,
+      "pnl_taker_%": -480.88,
+      "sharpe": 1.1,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 3220,
+      "trades_per_day": 107.3,
+      "wr": 51.4,
+      "avg_ret_bps": 7.37,
+      "pnl_gross_%": 237.36,
+      "pnl_maker_%": 108.56,
+      "pnl_taker_%": -84.64,
+      "sharpe": 2.2,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 279,
+      "trades_per_day": 9.3,
+      "wr": 46.2,
+      "avg_ret_bps": 5.64,
+      "pnl_gross_%": 15.74,
+      "pnl_maker_%": 4.58,
+      "pnl_taker_%": -12.16,
+      "sharpe": 4.2,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 18,
+      "trades_per_day": 0.6,
+      "wr": 66.7,
+      "avg_ret_bps": 29.25,
+      "pnl_gross_%": 5.26,
+      "pnl_maker_%": 4.54,
+      "pnl_taker_%": 3.46,
+      "sharpe": 88.8,
+      "folds": 3
+    }
+  },
+  "SOL_3m_ExtraTrees_fixed": {
+    "0.5": {
+      "trades": 11167,
+      "trades_per_day": 372.2,
+      "wr": 51.5,
+      "avg_ret_bps": 5.29,
+      "pnl_gross_%": 591.16,
+      "pnl_maker_%": 144.48,
+      "pnl_taker_%": -525.54,
+      "sharpe": 0.9,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 4520,
+      "trades_per_day": 150.7,
+      "wr": 53.1,
+      "avg_ret_bps": 6.53,
+      "pnl_gross_%": 295.06,
+      "pnl_maker_%": 114.26,
+      "pnl_taker_%": -156.94,
+      "sharpe": 1.4,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 1413,
+      "trades_per_day": 47.1,
+      "wr": 54.4,
+      "avg_ret_bps": 9.16,
+      "pnl_gross_%": 129.41,
+      "pnl_maker_%": 72.89,
+      "pnl_taker_%": -11.89,
+      "sharpe": 2.7,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 541,
+      "trades_per_day": 18.0,
+      "wr": 56.9,
+      "avg_ret_bps": 14.41,
+      "pnl_gross_%": 77.98,
+      "pnl_maker_%": 56.34,
+      "pnl_taker_%": 23.88,
+      "sharpe": 5.8,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 305,
+      "trades_per_day": 10.2,
+      "wr": 56.7,
+      "avg_ret_bps": 14.88,
+      "pnl_gross_%": 45.39,
+      "pnl_maker_%": 33.19,
+      "pnl_taker_%": 14.89,
+      "sharpe": 7.3,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 53,
+      "trades_per_day": 1.8,
+      "wr": 56.6,
+      "avg_ret_bps": 17.41,
+      "pnl_gross_%": 9.23,
+      "pnl_maker_%": 7.11,
+      "pnl_taker_%": 3.93,
+      "sharpe": 18.9,
+      "folds": 3
+    }
+  },
+  "SOL_3m_RandomForest_tripl": {
+    "0.5": {
+      "trades": 10494,
+      "trades_per_day": 349.8,
+      "wr": 51.7,
+      "avg_ret_bps": 5.83,
+      "pnl_gross_%": 611.48,
+      "pnl_maker_%": 191.72,
+      "pnl_taker_%": -437.92,
+      "sharpe": 1.2,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 5437,
+      "trades_per_day": 181.2,
+      "wr": 52.2,
+      "avg_ret_bps": 7.05,
+      "pnl_gross_%": 383.53,
+      "pnl_maker_%": 166.05,
+      "pnl_taker_%": -160.17,
+      "sharpe": 1.8,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 2046,
+      "trades_per_day": 68.2,
+      "wr": 53.2,
+      "avg_ret_bps": 8.49,
+      "pnl_gross_%": 173.7,
+      "pnl_maker_%": 91.86,
+      "pnl_taker_%": -30.9,
+      "sharpe": 3.1,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 752,
+      "trades_per_day": 25.1,
+      "wr": 52.9,
+      "avg_ret_bps": 8.96,
+      "pnl_gross_%": 67.38,
+      "pnl_maker_%": 37.3,
+      "pnl_taker_%": -7.82,
+      "sharpe": 5.0,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 354,
+      "trades_per_day": 11.8,
+      "wr": 50.3,
+      "avg_ret_bps": 7.73,
+      "pnl_gross_%": 27.38,
+      "pnl_maker_%": 13.22,
+      "pnl_taker_%": -8.02,
+      "sharpe": 5.9,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 30,
+      "trades_per_day": 1.0,
+      "wr": 60.0,
+      "avg_ret_bps": 19.11,
+      "pnl_gross_%": 5.73,
+      "pnl_maker_%": 4.53,
+      "pnl_taker_%": 2.73,
+      "sharpe": 55.2,
+      "folds": 3
+    }
+  },
+  "SOL_3m_RandomForest_fixed": {
+    "0.5": {
+      "trades": 11167,
+      "trades_per_day": 372.2,
+      "wr": 52.6,
+      "avg_ret_bps": 6.12,
+      "pnl_gross_%": 683.61,
+      "pnl_maker_%": 236.93,
+      "pnl_taker_%": -433.09,
+      "sharpe": 1.0,
+      "folds": 3
+    },
+    "0.52": {
+      "trades": 6460,
+      "trades_per_day": 215.3,
+      "wr": 52.9,
+      "avg_ret_bps": 6.6,
+      "pnl_gross_%": 426.22,
+      "pnl_maker_%": 167.82,
+      "pnl_taker_%": -219.78,
+      "sharpe": 1.3,
+      "folds": 3
+    },
+    "0.55": {
+      "trades": 2694,
+      "trades_per_day": 89.8,
+      "wr": 54.6,
+      "avg_ret_bps": 7.84,
+      "pnl_gross_%": 211.22,
+      "pnl_maker_%": 103.46,
+      "pnl_taker_%": -58.18,
+      "sharpe": 2.0,
+      "folds": 3
+    },
+    "0.58": {
+      "trades": 1340,
+      "trades_per_day": 44.7,
+      "wr": 55.9,
+      "avg_ret_bps": 8.7,
+      "pnl_gross_%": 116.63,
+      "pnl_maker_%": 63.03,
+      "pnl_taker_%": -17.37,
+      "sharpe": 2.7,
+      "folds": 3
+    },
+    "0.6": {
+      "trades": 848,
+      "trades_per_day": 28.3,
+      "wr": 55.4,
+      "avg_ret_bps": 10.82,
+      "pnl_gross_%": 91.79,
+      "pnl_maker_%": 57.87,
+      "pnl_taker_%": 6.99,
+      "sharpe": 3.8,
+      "folds": 3
+    },
+    "0.65": {
+      "trades": 310,
+      "trades_per_day": 10.3,
+      "wr": 54.2,
+      "avg_ret_bps": 13.89,
+      "pnl_gross_%": 43.07,
+      "pnl_maker_%": 30.67,
+      "pnl_taker_%": 12.07,
+      "sharpe": 6.8,
+      "folds": 3
+    },
+    "0.7": {
+      "trades": 108,
+      "trades_per_day": 3.6,
+      "wr": 55.6,
+      "avg_ret_bps": 14.09,
+      "pnl_gross_%": 15.22,
+      "pnl_maker_%": 10.9,
+      "pnl_taker_%": 4.42,
+      "sharpe": 10.1,
+      "folds": 3
+    }
+  }
+}
