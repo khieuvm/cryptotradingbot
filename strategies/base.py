@@ -230,6 +230,10 @@ class BaseStrategy(ABC):
             return trailing
         return None
 
+    def is_fixed_sl_only(self) -> bool:
+        """Whether to use fixed-only SL (no BE/trail phases)."""
+        return self.config.exit.get("fixed_sl_only", False)
+
     def get_position_size_factor(
         self, pair: str, direction: str, regime: str | None = None
     ) -> float:

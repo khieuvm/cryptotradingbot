@@ -40,6 +40,11 @@ FEATURE_COLS = [
     "macd_hist", "adx",
     "hour_sin", "hour_cos", "is_us_session", "is_asia_session",
     "tick_direction", "tick_run", "spread_proxy",
+    # Liquidity sweep & micro pullback pattern features
+    "sweep_long", "sweep_short",
+    "pullback_long", "pullback_short",
+    "sweep_wick_depth", "roll_low_dist", "roll_high_dist",
+    "ema8_touch_dist", "body_dir",
 ]
 
 
@@ -215,6 +220,131 @@ class MLScalpingSOL3m(BaseStrategy):
         dataframe["mls3_tick_run"] = runs
         dataframe["mls3_spread_proxy"] = (h - lo) / (c + 1e-10)
 
+        # ── Liquidity Sweep & Micro Pullback pattern features ──
+        ema8 = c.ewm(span=8, adjust=False).mean()
+        ema21 = c.ewm(span=21, adjust=False).mean()
+        roll_hi_5 = h.rolling(5).max().shift(1)
+        roll_lo_5 = lo.rolling(5).min().shift(1)
+        l_wick = np.minimum(c, o) - lo
+        u_wick = h - np.maximum(c, o)
+
+        # Sweep detection (binary signals)
+        dataframe["mls3_sweep_long"] = (
+            (lo < roll_lo_5)
+            & (c > roll_lo_5)
+            & (l_wick > 0.3 * atr14)
+            & (l_wick > 1.5 * u_wick)
+        ).astype(float)
+        dataframe["mls3_sweep_short"] = (
+            (h > roll_hi_5)
+            & (c < roll_hi_5)
+            & (u_wick > 0.3 * atr14)
+            & (u_wick > 1.5 * l_wick)
+        ).astype(float)
+
+        # Pullback detection (binary signals)
+        body_dir = np.sign(c - o)
+        dataframe["mls3_pullback_long"] = (
+            (ema8 > ema21)
+            & (lo <= ema8 * 1.002)
+            & (c > ema8)
+            & (body_dir == 1)
+        ).astype(float)
+        dataframe["mls3_pullback_short"] = (
+            (ema8 < ema21)
+            & (h >= ema8 * 0.998)
+            & (c < ema8)
+            & (body_dir == -1)
+        ).astype(float)
+
+        # Continuous pattern quality features
+        dataframe["mls3_sweep_wick_depth"] = np.maximum(l_wick, u_wick) / (atr14 + 1e-10)
+        dataframe["mls3_roll_low_dist"] = (c - roll_lo_5) / (atr14 + 1e-10)
+        dataframe["mls3_roll_high_dist"] = (roll_hi_5 - c) / (atr14 + 1e-10)
+        dataframe["mls3_ema8_touch_dist"] = (c - ema8) / (atr14 + 1e-10)
+        dataframe["mls3_body_dir"] = body_dir
+
+        return dataframe
+
+    def populate_entry_columns(self, dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
+        """Vectorized entry with signal confirmation and dedup."""
+        if not self._model_ready or self._model is None:
+            return dataframe
+
+        feat_cols = [f"mls3_{c}" for c in FEATURE_COLS]
+        if not all(c in dataframe.columns for c in feat_cols):
+            return dataframe
+
+        X = dataframe[feat_cols].values
+        valid = np.all(np.isfinite(X), axis=1)
+
+        proba = np.full(len(dataframe), 0.5)
+        if valid.any():
+            proba[valid] = self._model.predict_proba(X[valid])[:, 1]
+
+        threshold = self.config.entry.get("confidence_threshold", 0.55)
+        max_atr_ratio = self.config.entry.get("max_atr_ratio", 1.3)
+        blocked_hours = self.config.entry.get("blocked_hours", [1, 6, 18])
+        confirm_bars = self.config.entry.get("confirm_bars", 2)
+        dedup_bars = self.config.entry.get("dedup_bars", 0)
+        enable_short = self.config.entry.get("enable_short", True)
+
+        raw_long = proba > threshold
+        raw_short = (proba < (1 - threshold)) & enable_short
+
+        # Post-ML filters (vectorized)
+        atr_ratio = dataframe["mls3_atr_ratio"].values
+        hours = pd.to_datetime(dataframe["date"]).dt.hour.values
+        atr_ok = atr_ratio < max_atr_ratio
+        hour_ok = ~np.isin(hours, blocked_hours)
+        filt = atr_ok & hour_ok & valid
+
+        long_sig = raw_long & filt
+        short_sig = raw_short & filt
+
+        # Signal confirmation: require N consecutive candles signaling same direction
+        if confirm_bars > 1:
+            confirmed_long = np.zeros(len(dataframe), dtype=bool)
+            confirmed_short = np.zeros(len(dataframe), dtype=bool)
+            run_l = 0
+            run_s = 0
+            for i in range(len(dataframe)):
+                if long_sig[i]:
+                    run_l += 1
+                    run_s = 0
+                elif short_sig[i]:
+                    run_s += 1
+                    run_l = 0
+                else:
+                    run_l = 0
+                    run_s = 0
+                if run_l == confirm_bars:
+                    confirmed_long[i] = True
+                if run_s == confirm_bars:
+                    confirmed_short[i] = True
+            long_sig = confirmed_long
+            short_sig = confirmed_short
+
+        # Dedup: minimum N bars between entries
+        if dedup_bars > 0:
+            deduped_long = np.zeros(len(dataframe), dtype=bool)
+            deduped_short = np.zeros(len(dataframe), dtype=bool)
+            last_entry = -dedup_bars - 1
+            for i in range(self.startup_candle_count, len(dataframe)):
+                if (long_sig[i] or short_sig[i]) and (i - last_entry) >= dedup_bars:
+                    if long_sig[i]:
+                        deduped_long[i] = True
+                    else:
+                        deduped_short[i] = True
+                    last_entry = i
+            long_sig = deduped_long
+            short_sig = deduped_short
+
+        dataframe.loc[long_sig, "enter_long"] = 1
+        dataframe.loc[long_sig, "enter_tag"] = f"{self.name}_long"
+        dataframe.loc[short_sig, "enter_short"] = 1
+        dataframe.loc[short_sig, "enter_tag"] = f"{self.name}_short"
+
         return dataframe
 
     def on_tick(self, dataframe: pd.DataFrame, pair: str, current_time: datetime) -> None:
@@ -228,6 +358,28 @@ class MLScalpingSOL3m(BaseStrategy):
                 pair=sig.pair, direction=sig.direction,
                 strength=sig.strength, tag=sig.tag, metadata=sig.metadata,
             )
+
+    def _passes_post_ml_filters(self, dataframe: pd.DataFrame) -> bool:
+        """Post-ML filters to reject signals in adverse conditions.
+
+        Filters based on OOS failure analysis:
+        - atr_ratio (atr5/atr14) >= threshold → volatility expanding, SL gets hit by whipsaws
+        - Bad hours (low liquidity transition periods)
+        """
+        last = dataframe.iloc[-1]
+
+        atr_ratio = float(last.get("mls3_atr_ratio", 1.0))
+        max_atr_ratio = self.config.entry.get("max_atr_ratio", 1.3)
+        if atr_ratio >= max_atr_ratio:
+            return False
+
+        dt = pd.to_datetime(last.get("date", None))
+        if dt is not None:
+            blocked_hours = self.config.entry.get("blocked_hours", [1, 6, 18])
+            if dt.hour in blocked_hours:
+                return False
+
+        return True
 
     def detect_entries(self, dataframe: pd.DataFrame, pair: str) -> list[Signal]:
         signals: list[Signal] = []
@@ -253,7 +405,12 @@ class MLScalpingSOL3m(BaseStrategy):
         proba = self._model.predict_proba(X)[0]
         prob_long = proba[1] if len(proba) > 1 else 0.5
 
-        threshold = self.config.entry.get("confidence_threshold", 0.58)
+        threshold = self.config.entry.get("confidence_threshold", 0.55)
+        enable_short = self.config.entry.get("enable_short", True)
+
+        if prob_long > threshold or (enable_short and prob_long < (1 - threshold)):
+            if not self._passes_post_ml_filters(dataframe):
+                return signals
 
         if prob_long > threshold:
             signals.append(Signal(
@@ -263,7 +420,7 @@ class MLScalpingSOL3m(BaseStrategy):
                 timestamp=datetime.utcnow(),
                 metadata={"prob": float(prob_long)},
             ))
-        elif prob_long < (1 - threshold):
+        elif enable_short and prob_long < (1 - threshold):
             signals.append(Signal(
                 strategy_name=self.name, pair=pair,
                 direction=Direction.SHORT, strength=float(1 - prob_long),
@@ -290,7 +447,8 @@ class MLScalpingSOL3m(BaseStrategy):
         if atr <= 0 or open_rate <= 0:
             return None
 
-        tp_pct = self.tp_atr_mult * atr / open_rate
+        leverage = trade_info.get("leverage", 3.0)
+        tp_pct = self.tp_atr_mult * atr / open_rate * leverage
         if current_profit >= tp_pct:
             return ExitRequest(
                 strategy_name=self.name, pair=pair,

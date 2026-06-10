@@ -31,6 +31,7 @@ class StoplossManager:
         fee: float = 0.001,
         trailing_cfg: dict | None = None,
         leverage: float = 1.0,
+        fixed_only: bool = False,
     ) -> float:
         """Calculate dynamic stoploss as a negative fraction.
 
@@ -51,6 +52,11 @@ class StoplossManager:
                 current_rate, is_short, fee, trailing_cfg, leverage,
             )
 
+        if fixed_only:
+            sl_price = self._offset_price(open_rate, sl_pct, is_short)
+            return self._bounded_sl(sl_price, current_rate, is_short, leverage,
+                                    floor=-0.50)
+
         # Phase 3: Trail-lock (profit >= TP target)
         # Lock at 60% of TP distance from entry (in profit direction)
         if current_profit >= tp_acct:
@@ -65,8 +71,6 @@ class StoplossManager:
                                     floor=-sl_pct * leverage)
 
         # Phase 1: Fixed SL at entry ± sl_distance
-        # LONG: SL below entry (above=False → is_short=False means above=False)
-        # SHORT: SL above entry (above=True → is_short=True means above=True)
         sl_price = self._offset_price(open_rate, sl_pct, is_short)
         return self._bounded_sl(sl_price, current_rate, is_short, leverage,
                                 floor=-0.50)

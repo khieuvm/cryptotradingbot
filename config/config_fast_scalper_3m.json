@@ -1,0 +1,114 @@
+{
+    "trading_mode": "futures",
+    "margin_mode": "isolated",
+    "exchange": {
+        "name": "okx",
+        "key": "",
+        "secret": "",
+        "password": "",
+        "ccxt_config": {},
+        "ccxt_async_config": {},
+        "pair_whitelist": [
+            "SOL/USDT:USDT"
+        ],
+        "pair_blacklist": []
+    },
+    "stake_currency": "USDT",
+    "stake_amount": 50,
+    "tradable_balance_ratio": 0.95,
+    "dry_run": true,
+    "dry_run_wallet": 1000,
+    "timeframe": "3m",
+    "max_open_trades": 4,
+    "unfilledtimeout": {
+        "entry": 2,
+        "exit": 2
+    },
+    "entry_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0
+    },
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0
+    },
+    "order_types": {
+        "entry": "market",
+        "exit": "market",
+        "stoploss": "market",
+        "stoploss_on_exchange": false
+    },
+    "stoploss": -0.15,
+    "trailing_stop": false,
+    "minimal_roi": {
+        "0": 100
+    },
+    "strategy": "CryptoEngine",
+    "_comment_disabled": "fast_scalper_3m marked Grade F after backtest validation - no edge",
+    "active_strategies": [
+        "ml_scalping_sol_3m"
+    ],
+    "internals": {
+        "process_throttle_secs": 5
+    },
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8083,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "jwt_secret_key": "fs3m_fast_scalper_secret_key_32char_padding!",
+        "CORS_origins": [
+            "http://localhost:8083"
+        ],
+        "username": "freqtrade",
+        "password": "freqtrade"
+    },
+    "telegram": {
+        "enabled": true,
+        "token": "",
+        "chat_id": "",
+        "notification_settings": {
+            "status": "silent",
+            "warning": "on",
+            "startup": "on",
+            "entry": "on",
+            "exit": "on"
+        }
+    },
+    "bot_name": "Fast-Scalper-3m",
+    "initial_state": "running",
+    "force_entry_enable": false,
+    "dataformat_ohlcv": "feather",
+    "leverage": {
+        "default": 3
+    },
+    "_comment": "Fast Scalper 3m - Micro Pullback + Liquidity Sweep. Port 8083.",
+    "datadir": "user_data/data",
+    "pairlists": [
+        {
+            "method": "StaticPairList"
+        }
+    ],
+    "strategy_path": "adapters",
+    "signal_tracker": {
+        "window": 100,
+        "disable_threshold_wr": 0.15,
+        "disable_lookback": 50,
+        "disable_duration_hours": 1,
+        "severe_threshold_wr": 0.1,
+        "severe_lookback": 100
+    },
+    "risk": {
+        "circuit_breaker": {
+            "max_daily_drawdown": 0.5,
+            "max_weekly_drawdown": 0.5,
+            "consecutive_losses_halt": 50,
+            "cooldown_hours": 0.1
+        }
+    }
+}

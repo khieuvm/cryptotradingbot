@@ -160,6 +160,7 @@ class Orchestrator:
             "is_short": trade.is_short,
             "current_time": current_time,
             "current_rate": current_rate,
+            "leverage": getattr(trade, "leverage", 1.0) or 1.0,
         }
         exit_req = strat.detect_exits(df, pair, trade_info)
         if exit_req is not None:
@@ -224,6 +225,7 @@ class Orchestrator:
             fee=fee,
             trailing_cfg=trailing_cfg,
             leverage=leverage,
+            fixed_only=strat.is_fixed_sl_only(),
         )
 
     def calculate_stake(
@@ -376,6 +378,7 @@ class Orchestrator:
             "micro_pullback": "mp_",
             "ml_scalping_sol_3m": "mls3_",
             "ml_scalping_enhanced_3m": "mle3_",
+            "fast_scalper_3m": "fs3_",
         }
         prefix = prefix_map.get(strategy_name, "")
         if prefix:
