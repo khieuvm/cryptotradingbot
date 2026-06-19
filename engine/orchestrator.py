@@ -33,15 +33,24 @@ from strategies.base import BaseStrategy
 
 logger = logging.getLogger(__name__)
 
-TG_TOKEN = "8644600176:AAEoExWngxwZSI27AGGoGLeOE-lkeidlCHk"
-TG_CHAT = "6200159681"
+_TG_TOKEN = ""
+_TG_CHAT = ""
+
+
+def _init_tg(config: AppConfig) -> None:
+    global _TG_TOKEN, _TG_CHAT
+    tg = config.data.get("telegram", {})
+    _TG_TOKEN = tg.get("token", "")
+    _TG_CHAT = str(tg.get("chat_id", ""))
 
 
 def _send_tg(msg: str) -> None:
+    if not _TG_TOKEN or not _TG_CHAT:
+        return
     try:
-        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+        url = f"https://api.telegram.org/bot{_TG_TOKEN}/sendMessage"
         data = urllib.parse.urlencode({
-            "chat_id": TG_CHAT, "text": msg, "parse_mode": "Markdown",
+            "chat_id": _TG_CHAT, "text": msg, "parse_mode": "Markdown",
         }).encode()
         urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=5)
     except Exception:
@@ -76,6 +85,7 @@ class Orchestrator:
     def initialize(self, dp: Any) -> None:
         """Called once from bot_start(). Load strategies, subscribe events."""
         self._dp = dp
+        _init_tg(self.config)
         for name, cls in get_active_strategy_classes(self.config):
             strat_cfg = self.config.get_strategy_config(name)
             strat = cls(strat_cfg)
