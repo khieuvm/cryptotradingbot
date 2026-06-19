@@ -238,8 +238,11 @@ class AppConfig:
                 "password": api.get("password", "admin"),
             }
 
-        # Data directory
-        ft_config["datadir"] = str(_ROOT / "data")
+        # User data directory
+        ft_config["user_data_dir"] = str(_ROOT / "user_data")
+
+        # Start bot immediately (don't wait for /start command)
+        ft_config["initial_state"] = "running"
 
         # Engine env pass-through
         ft_config["engine_env"] = self.env

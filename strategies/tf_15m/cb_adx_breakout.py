@@ -117,6 +117,8 @@ class CbAdxBreakoutStrategy(BaseStrategy):
         # Dedup filter
         if bool(last.get("cba_last_signal", False)):
             return signals
+        if not bool(self.get_session_mask(dataframe).iloc[-1]):
+            return signals
 
         # RSI filter (don't buy overbought, don't sell oversold)
         rsi = float(last.get("cba_rsi", 50))
@@ -155,11 +157,12 @@ class CbAdxBreakoutStrategy(BaseStrategy):
         rsi_min = self.config.entry.get("rsi_min", 28)
         startup = self.startup_candle_count
         df = dataframe
+        session = self.get_session_mask(dataframe)
 
         not_deduped = ~df["cba_last_signal"]
 
-        enter_long = df["cba_break_up"] & not_deduped & (df["cba_rsi"] < rsi_max)
-        enter_short = df["cba_break_down"] & not_deduped & (df["cba_rsi"] > rsi_min)
+        enter_long = df["cba_break_up"] & not_deduped & (df["cba_rsi"] < rsi_max) & session
+        enter_short = df["cba_break_down"] & not_deduped & (df["cba_rsi"] > rsi_min) & session
 
         enter_long.iloc[:startup] = False
         enter_short.iloc[:startup] = False

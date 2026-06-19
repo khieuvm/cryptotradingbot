@@ -278,5 +278,22 @@ class BaseStrategy(ABC):
     def is_pair_active(self, pair: str) -> bool:
         return pair in self.config.pairs
 
+    def get_session_mask(self, dataframe: pd.DataFrame) -> pd.Series:
+        """Boolean mask: True for candles within the configured trading session (UTC hours)."""
+        start = self.config.entry.get("session_start_utc", None)
+        end = self.config.entry.get("session_end_utc", None)
+        if start is None or end is None:
+            return pd.Series(True, index=dataframe.index)
+        if "date" not in dataframe.columns:
+            return pd.Series(True, index=dataframe.index)
+        date_col = dataframe["date"]
+        if hasattr(date_col.dt, "tz") and date_col.dt.tz is not None:
+            hour = date_col.dt.tz_convert("UTC").dt.hour
+        else:
+            hour = date_col.dt.hour
+        if start <= end:
+            return (hour >= start) & (hour < end)
+        return (hour >= start) | (hour < end)
+
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self.name} grade={self.grade}>"

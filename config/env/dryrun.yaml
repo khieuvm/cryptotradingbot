@@ -15,8 +15,8 @@ api_server:
 
 telegram:
   enabled: true
-  token: ""
-  chat_id: ""
+  token: "8644600176:AAEoExWngxwZSI27AGGoGLeOE-lkeidlCHk"
+  chat_id: "6200159681"
 
 logging:
   level: INFO

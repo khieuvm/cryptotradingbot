@@ -58,6 +58,10 @@ class CryptoEngine(IStrategy):
         if "timeframe" in config:
             self.timeframe = config["timeframe"]
             self._app_config._merged.setdefault("market", {})["timeframe"] = config["timeframe"]
+        if "signal_tracker" in config:
+            self._app_config._merged["signal_tracker"] = config["signal_tracker"]
+        if "risk" in config:
+            self._app_config._merged.setdefault("risk", {}).update(config["risk"])
 
         self._engine = Orchestrator(self._app_config)
         active = self._app_config.get_active_strategies()
@@ -87,8 +91,15 @@ class CryptoEngine(IStrategy):
         dataframe["enter_short"] = 0
         dataframe["enter_tag"] = ""
 
-        for strat in self._engine._pair_strategies.get(pair, []):
-            if strat.grade not in ("A", "B"):
+        # Grade A runs last so its entry_tag overwrites Grade B/C on same-bar conflicts.
+        # Grade F is always excluded. Grade C runs in research/backtest context.
+        _grade_order = {"A": 2, "B": 1, "C": 0}
+        _strats_ordered = sorted(
+            self._engine._pair_strategies.get(pair, []),
+            key=lambda s: _grade_order.get(s.grade, -1),
+        )
+        for strat in _strats_ordered:
+            if strat.grade == "F":
                 continue
             if not self._engine.state.is_strategy_active(strat.name):
                 continue
@@ -181,3 +192,24 @@ class CryptoEngine(IStrategy):
         max_leverage, entry_tag, side, **kwargs
     ) -> float:
         return self._engine.get_leverage(pair, entry_tag or "")
+
+
+class CryptoEngine5m(CryptoEngine):
+    """5m-timeframe CryptoEngine for scalping strategies.
+
+    Identical to CryptoEngine except timeframe = "5m". Run as a separate
+    freqtrade process pointing at a config with the 5m active_strategies list.
+
+    The orchestrator's market.timeframe is updated to "5m" automatically because
+    CryptoEngine.__init__ propagates self.timeframe into _app_config._merged when
+    the class attribute differs from the parent default. The startup_candle_count
+    is driven by the highest startup_candle_count among active 5m strategies
+    (typically 600 for ema_pullback_5m / asian_range_breakout_5m which need
+    50 completed 1h bars for EMA50 warmup: 50 * 12 = 600 5m bars).
+
+    Example launch:
+        python ft_run.py backtesting --strategy CryptoEngine5m \\
+            --config config_5m.json --timerange 20260101-
+    """
+
+    timeframe = "5m"

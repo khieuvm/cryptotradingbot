@@ -17,11 +17,12 @@ You run backtests using freqtrade's engine and analyze results for crypto future
 ## Context
 
 - **Engine:** Freqtrade (`python ft_run.py backtesting ...`)
-- **Strategy:** CryptoMaster_OKX (unified dispatcher to combo registry)
-- **Pairs:** BTC/USDT:USDT, ETH/USDT:USDT, SOL/USDT:USDT
+- **Strategy:** CryptoEngine (IStrategy bridge in `adapters/ft_strategy.py`)
+- **Pairs:** ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, DOGE/USDT:USDT
 - **Timeframe:** 15m
 - **Data location:** `data/okx/futures/`
 - **Results location:** `backtest_results/`
+- **Config:** Generated on-the-fly by `AppConfig.get_freqtrade_config()`; do NOT use a static JSON config
 
 ## Cost Model (Mandatory)
 
@@ -34,17 +35,16 @@ Every backtest MUST account for:
 ## Backtest Commands
 
 ```bash
-# Standard backtest
-python ft_run.py backtesting --strategy CryptoMaster_OKX \
-  --timerange 20260101- --timeframe 15m \
-  -c config_master.json
+# Standard backtest (all active pairs)
+python ft_run.py backtesting --strategy CryptoEngine \
+  --timerange 20260101- --timeframe 15m
 
 # Specific pair
-python ft_run.py backtesting --strategy CryptoMaster_OKX \
-  --timerange 20260101- -p BTC/USDT:USDT
+python ft_run.py backtesting --strategy CryptoEngine \
+  --timerange 20260101- -p ETH/USDT:USDT
 
 # With detailed trade list
-python ft_run.py backtesting --strategy CryptoMaster_OKX \
+python ft_run.py backtesting --strategy CryptoEngine \
   --timerange 20260101- --export trades
 ```
 
@@ -52,8 +52,8 @@ python ft_run.py backtesting --strategy CryptoMaster_OKX \
 
 For every backtest, report:
 1. **Total stats:** Trades, WR, PF, Sharpe, Max DD, Total profit %
-2. **Per-pair:** Breakdown for BTC, ETH, SOL separately
-3. **Per-combo:** Breakdown by enter_tag prefix (regime_adaptive, meanrev, trend)
+2. **Per-pair:** Breakdown for ETH, SOL, SPX, DOGE separately
+3. **Per-strategy:** Breakdown by enter_tag prefix (regime_adaptive, volume_spike_rev, cb_adx_breakout)
 4. **Per-direction:** Long vs Short performance
 5. **Exit reasons:** Distribution (TP_HIT, time_cut, SL, signal_exit)
 6. **Time analysis:** Performance by hour-of-day (identify dead zones)

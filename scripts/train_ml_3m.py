@@ -27,6 +27,11 @@ FEATURE_COLS = [
     "macd_hist", "adx",
     "hour_sin", "hour_cos", "is_us_session", "is_asia_session",
     "tick_direction", "tick_run", "spread_proxy",
+    # Liquidity sweep & micro pullback pattern features
+    "sweep_long", "sweep_short",
+    "pullback_long", "pullback_short",
+    "sweep_wick_depth", "roll_low_dist", "roll_high_dist",
+    "ema8_touch_dist", "body_dir",
 ]
 
 
@@ -112,6 +117,48 @@ def compute_features(df):
             runs[i] = runs[i - 1] + 1
     df["tick_run"] = runs
     df["spread_proxy"] = (h - lo) / (c + 1e-10)
+
+    # ── Liquidity Sweep & Micro Pullback pattern features ──
+    ema8 = c.ewm(span=8, adjust=False).mean()
+    ema21 = c.ewm(span=21, adjust=False).mean()
+    roll_hi_5 = h.rolling(5).max().shift(1)
+    roll_lo_5 = lo.rolling(5).min().shift(1)
+    l_wick = np.minimum(c, o) - lo
+    u_wick = h - np.maximum(c, o)
+    atr14 = df["atr_14"]
+
+    df["sweep_long"] = (
+        (lo < roll_lo_5)
+        & (c > roll_lo_5)
+        & (l_wick > 0.3 * atr14)
+        & (l_wick > 1.5 * u_wick)
+    ).astype(float)
+    df["sweep_short"] = (
+        (h > roll_hi_5)
+        & (c < roll_hi_5)
+        & (u_wick > 0.3 * atr14)
+        & (u_wick > 1.5 * l_wick)
+    ).astype(float)
+
+    body_dir_val = np.sign(c - o)
+    df["pullback_long"] = (
+        (ema8 > ema21)
+        & (lo <= ema8 * 1.002)
+        & (c > ema8)
+        & (body_dir_val == 1)
+    ).astype(float)
+    df["pullback_short"] = (
+        (ema8 < ema21)
+        & (h >= ema8 * 0.998)
+        & (c < ema8)
+        & (body_dir_val == -1)
+    ).astype(float)
+
+    df["sweep_wick_depth"] = np.maximum(l_wick, u_wick) / (atr14 + 1e-10)
+    df["roll_low_dist"] = (c - roll_lo_5) / (atr14 + 1e-10)
+    df["roll_high_dist"] = (roll_hi_5 - c) / (atr14 + 1e-10)
+    df["ema8_touch_dist"] = (c - ema8) / (atr14 + 1e-10)
+    df["body_dir"] = body_dir_val
 
     return df
 

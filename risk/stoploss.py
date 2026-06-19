@@ -64,9 +64,11 @@ class StoplossManager:
             return self._bounded_sl(lock_price, current_rate, is_short, leverage,
                                     floor=-0.005 * leverage)
 
-        # Phase 2: Break-even (profit >= 50% of TP)
-        if current_profit >= tp_acct * 0.5:
-            be_price = open_rate * (1 + fee) if not is_short else open_rate * (1 - fee)
+        # Phase 2: Break-even (profit >= 70% of TP)
+        # Lock at entry + 20% of TP distance (not exact BE — room for retracement)
+        if current_profit >= tp_acct * 0.7:
+            lock_pct = tp_pct * 0.20
+            be_price = self._offset_price(open_rate, lock_pct, not is_short)
             return self._bounded_sl(be_price, current_rate, is_short, leverage,
                                     floor=-sl_pct * leverage)
 

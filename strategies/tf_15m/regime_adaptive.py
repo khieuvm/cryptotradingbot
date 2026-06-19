@@ -86,6 +86,9 @@ class RegimeAdaptiveStrategy(BaseStrategy):
         dataframe["ra_is_bull"] = (c > dataframe["ra_ema200"]).astype(int)
         dataframe["ra_is_bear"] = (c < dataframe["ra_ema200"]).astype(int)
 
+        dataframe["ra_st_dir_prev"] = dataframe["ra_st_dir"].shift(1)
+        dataframe["ra_st_flip_bull"] = ((dataframe["ra_st_dir"] == 1) & (dataframe["ra_st_dir_prev"] == -1)).astype(int)
+
         # EMA cross freshness: bars since last cross
         cross_up = (dataframe["ra_ema_fast"] > dataframe["ra_ema_slow"]) & (
             dataframe["ra_ema_fast"].shift(1) <= dataframe["ra_ema_slow"].shift(1)
@@ -134,6 +137,9 @@ class RegimeAdaptiveStrategy(BaseStrategy):
     def detect_entries(self, dataframe: pd.DataFrame, pair: str) -> list[Signal]:
         signals: list[Signal] = []
         last = dataframe.iloc[-1]
+
+        if not bool(self.get_session_mask(dataframe).iloc[-1]):
+            return signals
 
         adx_thr = self.config.entry.get("adx_trend_thr", 31)
         rsi_os = self.config.entry.get("rsi_os", 34)
@@ -233,12 +239,14 @@ class RegimeAdaptiveStrategy(BaseStrategy):
 
         df = dataframe
         startup = self.startup_candle_count
+        session = self.get_session_mask(dataframe)
 
         # Common filters
         valid = (
             (df["ra_atr_ratio"] < atr_spike)
             & (df["ra_vol_ratio"] >= vol_min)
             & (df["volume"] > 0)
+            & session
         )
 
         # Trending conditions
@@ -342,7 +350,6 @@ class RegimeAdaptiveStrategy(BaseStrategy):
                     reason="range_target_exit", urgency=Urgency.NEXT_CANDLE,
                     timestamp=datetime.utcnow(),
                 )
-
         # Cascading time-loss cuts
         hours = (current_time - entry_time).total_seconds() / 3600
         exit_cfg = self.config.exit

@@ -79,6 +79,8 @@ class VolumeSpikeRevStrategy(BaseStrategy):
             return signals
 
         last = dataframe.iloc[-1]
+        if not bool(self.get_session_mask(dataframe).iloc[-1]):
+            return signals
 
         spike_mult = self.config.entry.get("spike_mult", 3.0)
         vol_min = self.config.entry.get("vol_min", 1.0)
@@ -128,6 +130,7 @@ class VolumeSpikeRevStrategy(BaseStrategy):
 
         startup = self.startup_candle_count
         df = dataframe
+        session = self.get_session_mask(dataframe)
 
         vol_spike = df["vs_vol_ratio"] >= spike_mult
         atr_ok = df["vs_body"] > 0.3 * df["vs_atr"]
@@ -138,8 +141,9 @@ class VolumeSpikeRevStrategy(BaseStrategy):
             & atr_ok
             & (df["vs_rsi"] > rsi_short_min)
             & (df["vs_rsi"] < rsi_short_max)
+            & session
         )
-        enter_long = vol_spike & df["vs_hammer"] & (df["vs_rsi"] < rsi_os_thr)
+        enter_long = vol_spike & df["vs_hammer"] & (df["vs_rsi"] < rsi_os_thr) & session
 
         enter_long.iloc[:startup] = False
         enter_short.iloc[:startup] = False

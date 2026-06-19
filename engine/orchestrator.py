@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
+import time
+import urllib.request
+import urllib.parse
 from datetime import datetime
 from typing import Any
 
@@ -28,6 +32,20 @@ from strategies import get_active_strategy_classes
 from strategies.base import BaseStrategy
 
 logger = logging.getLogger(__name__)
+
+TG_TOKEN = "8644600176:AAEoExWngxwZSI27AGGoGLeOE-lkeidlCHk"
+TG_CHAT = "6200159681"
+
+
+def _send_tg(msg: str) -> None:
+    try:
+        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+        data = urllib.parse.urlencode({
+            "chat_id": TG_CHAT, "text": msg, "parse_mode": "Markdown",
+        }).encode()
+        urllib.request.urlopen(urllib.request.Request(url, data=data), timeout=5)
+    except Exception:
+        pass
 
 
 class Orchestrator:
@@ -286,19 +304,55 @@ class Orchestrator:
         if atr > 0 and (atr / close) > self._entry_filters.get("atr_spike_max", 0.04):
             return False
 
-        # BTC sentiment gate
+        # BTC sentiment gate (RSI)
         btc_rsi = float(last.get("btc_rsi_1h", 50))
         if side == "long" and btc_rsi < self._entry_filters.get("btc_rsi_long_min", 35):
             return False
         if side == "short" and btc_rsi > self._entry_filters.get("btc_rsi_short_max", 65):
             return False
 
+        # BTC 3-bar return canary
+        btc_ret = self._get_btc_return_3bar()
+        if btc_ret is not None:
+            btc_threshold = self._entry_filters.get("btc_ret3_threshold", 0.005)
+            if side == "long" and btc_ret < -btc_threshold:
+                msg = f"[FILTER] {entry_tag} LONG blocked: BTC ret3={btc_ret*100:.2f}%"
+                logger.info(msg)
+                _send_tg(f"\U0001f6ab *{entry_tag}* LONG blocked\nBTC 3bar: {btc_ret*100:+.2f}%")
+                return False
+            if side == "short" and btc_ret > btc_threshold:
+                msg = f"[FILTER] {entry_tag} SHORT blocked: BTC ret3={btc_ret*100:.2f}%"
+                logger.info(msg)
+                _send_tg(f"\U0001f6ab *{entry_tag}* SHORT blocked\nBTC 3bar: {btc_ret*100:+.2f}%")
+                return False
+
         # Funding rate extreme filter
         funding = float(last.get("funding_rate", 0.0))
-        if side == "long" and funding > self._entry_filters.get("funding_long_max", 0.00008):
+        if side == "long" and funding > self._entry_filters.get("funding_long_max", 0.0005):
+            msg = f"[FILTER] {entry_tag} LONG blocked: funding={funding*100:.4f}%"
+            logger.info(msg)
+            _send_tg(f"\U0001f6ab *{entry_tag}* LONG blocked\nFunding: {funding*100:+.4f}%")
             return False
-        if side == "short" and funding < self._entry_filters.get("funding_short_min", -0.00007):
+        if side == "short" and funding < self._entry_filters.get("funding_short_min", -0.0005):
+            msg = f"[FILTER] {entry_tag} SHORT blocked: funding={funding*100:.4f}%"
+            logger.info(msg)
+            _send_tg(f"\U0001f6ab *{entry_tag}* SHORT blocked\nFunding: {funding*100:+.4f}%")
             return False
+
+        # Taker volume filter (volume_spike_rev only)
+        if strategy_name == "volume_spike_rev":
+            taker_buy_pct = self._get_taker_buy_pct(pair)
+            if taker_buy_pct is not None:
+                if side == "short" and taker_buy_pct > 55:
+                    msg = f"[FILTER] vs_short blocked: taker_buy={taker_buy_pct:.1f}%"
+                    logger.info(msg)
+                    _send_tg(f"\U0001f6ab *vs_short* blocked\nTaker Buy: {taker_buy_pct:.0f}% (buyers dominant)")
+                    return False
+                if side == "long" and taker_buy_pct < 45:
+                    msg = f"[FILTER] vs_long blocked: taker_buy={taker_buy_pct:.1f}%"
+                    logger.info(msg)
+                    _send_tg(f"\U0001f6ab *vs_long* blocked\nTaker Buy: {taker_buy_pct:.0f}% (sellers dominant)")
+                    return False
 
         return True
 
@@ -379,6 +433,12 @@ class Orchestrator:
             "ml_scalping_sol_3m": "mls3_",
             "ml_scalping_enhanced_3m": "mle3_",
             "fast_scalper_3m": "fs3_",
+            # 5m scalping strategies
+            "squeeze_breakout_5m": "sq5_",
+            "volume_climax_5m": "vc5_",
+            "ema_pullback_5m": "ep5_",
+            "asian_range_breakout_5m": "arb5_",
+            "volume_impulse_15m": "vi_",
         }
         prefix = prefix_map.get(strategy_name, "")
         if prefix:
@@ -391,3 +451,61 @@ class Orchestrator:
             if val and float(val) > 0:
                 return float(val)
         return 0.0
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # OKX REAL-TIME DATA (for live entry filters)
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    _OKX_INST_MAP = {
+        "ETH/USDT:USDT": "ETH-USDT-SWAP",
+        "BTC/USDT:USDT": "BTC-USDT-SWAP",
+        "SOL/USDT:USDT": "SOL-USDT-SWAP",
+    }
+    _taker_cache: dict[str, tuple[float, float]] = {}  # pair -> (timestamp, buy_pct)
+    _btc_ret_cache: tuple[float, float | None] = (0, None)  # (timestamp, ret_3bar)
+
+    def _get_taker_buy_pct(self, pair: str) -> float | None:
+        """Fetch latest taker buy/sell ratio from OKX. Cached 60s."""
+        now = time.time()
+        cached = self._taker_cache.get(pair)
+        if cached and now - cached[0] < 60:
+            return cached[1]
+
+        inst = self._OKX_INST_MAP.get(pair)
+        if not inst:
+            return None
+        try:
+            url = (f"https://www.okx.com/api/v5/rubik/stat/taker-volume-contract"
+                   f"?instId={inst}&period=15m&limit=1")
+            req = urllib.request.Request(url, headers={"User-Agent": "freqtrade"})
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                raw = json.loads(resp.read())
+            rows = raw.get("data", [])
+            if rows:
+                buy = float(rows[0][1])
+                sell = float(rows[0][2])
+                total = buy + sell
+                pct = buy / total * 100 if total > 0 else 50.0
+                self._taker_cache[pair] = (now, pct)
+                return pct
+        except Exception as e:
+            logger.debug(f"Taker fetch failed: {e}")
+        return None
+
+    def _get_btc_return_3bar(self) -> float | None:
+        """Get BTC 3-bar (45min) return from analyzed dataframe."""
+        now = time.time()
+        if now - self._btc_ret_cache[0] < 60 and self._btc_ret_cache[1] is not None:
+            return self._btc_ret_cache[1]
+
+        try:
+            btc_df, _ = self._dp.get_analyzed_dataframe("BTC/USDT:USDT", self.config.get_timeframe())
+            if btc_df.empty or len(btc_df) < 4:
+                return None
+            close_now = float(btc_df["close"].iloc[-1])
+            close_3ago = float(btc_df["close"].iloc[-4])
+            ret = (close_now - close_3ago) / close_3ago
+            self.__class__._btc_ret_cache = (now, ret)
+            return ret
+        except Exception:
+            return None

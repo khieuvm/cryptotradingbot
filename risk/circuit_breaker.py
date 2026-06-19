@@ -27,6 +27,7 @@ class CircuitBreaker:
         self._event_bus = event_bus
         self._signal_cfg = config.get_signal_tracker_config()
         self._cb_cfg = config.get_circuit_breaker_config()
+        self._backtest_mode = getattr(config, "env", "") == "backtest"
 
         # Per strategy:pair trade tracking
         self._trades: dict[str, deque] = {}
@@ -145,6 +146,8 @@ class CircuitBreaker:
 
     def is_disabled(self, strategy_name: str, pair: str) -> bool:
         """Check if a strategy/pair combination is currently disabled."""
+        if self._backtest_mode:
+            return False
         if self.is_halted():
             return True
 
@@ -168,6 +171,8 @@ class CircuitBreaker:
 
     def is_halted(self) -> bool:
         """Check if the entire portfolio is halted."""
+        if self._backtest_mode:
+            return False
         if self._halted_until is None:
             return False
         if datetime.utcnow() >= self._halted_until:
