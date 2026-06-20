@@ -47,3 +47,19 @@ config_master.json
 
 # Plot outputs
 plot/
+
+# Runtime state
+tradesv3.*.sqlite*
+scripts/*_state.json
+scripts/monitor_state.json
+
+# ML models (regenerable)
+models/
+
+# Research (one-shot, not needed for production)
+research/
+
+# Config overlays with secrets (use .example as template)
+config/env/dryrun.yaml
+config/env/live.yaml
+!config/env/*.yaml.example

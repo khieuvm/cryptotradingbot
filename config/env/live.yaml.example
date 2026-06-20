@@ -1,9 +1,9 @@
 # Live trading environment overlay
+# Copy to live.yaml and fill in your credentials
 dry_run: false
 stake_amount: 50
 max_stake_amount: 150
 
-# Only grade A/B strategies trade live
 active_strategies:
   - regime_adaptive
 
@@ -28,10 +28,10 @@ api_server:
 
 telegram:
   enabled: true
-  token: ""
-  chat_id: ""
+  token: ""      # BotFather token
+  chat_id: ""    # your chat ID
 
-# API credentials (set via environment variables or secrets manager)
+# OKX API credentials
 api_key: ""
 api_secret: ""
 api_password: ""

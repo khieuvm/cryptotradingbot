@@ -1,21 +1,46 @@
 # Freqtrade Crypto Trading Bot — OKX Futures
 
+## Quick Setup (New Machine)
+
+```bash
+# 1. Clone
+git clone <repo-url>
+cd freqtrade
+
+# 2. Python 3.12 + dependencies
+pip install -r requirements.txt
+# TA-Lib requires C library: https://github.com/TA-Lib/ta-lib-python#dependencies
+# FinBERT (for news monitor): pip install transformers torch
+
+# 3. Config — copy templates and fill in credentials
+cp config/env/dryrun.yaml.example config/env/dryrun.yaml
+cp config/env/live.yaml.example config/env/live.yaml
+# Edit dryrun.yaml: set telegram token + chat_id
+# Edit live.yaml: set telegram + OKX API key/secret/password
+
+# 4. Download market data
+python ft_run.py download-data --exchange okx --pairs ETH/USDT:USDT -t 15m 1h --days 180
+
+# 5. Run
+python ft_run.py trade --strategy CryptoEngine --env dryrun    # bot trading
+python scripts/eth_monitor.py --verbose                        # market monitor (separate process)
+```
+
 ## Overview
 
-Automated cryptocurrency futures trading system on OKX using freqtrade as the execution engine. Event-driven architecture with self-contained strategies, centralized risk management, and multi-agent research pipeline.
+Automated ETH futures trading on OKX via freqtrade. Event-driven architecture with self-contained strategies, centralized risk management.
 
 ## Architecture
 
 ```
-engine/              Central orchestrator, event bus, config, state
+engine/              Orchestrator, event bus, config, state
 strategies/          Self-contained strategy units (BaseStrategy subclasses)
 adapters/            Freqtrade IStrategy bridge (CryptoEngine)
 risk/                Position sizing, stoploss, circuit breaker, exposure
 indicators/          Shared indicator library (trend, volatility, volume, momentum, market_data)
 config/              base.yaml + env overlays (backtest/dryrun/live)
-scripts/             Deployment helpers (run_master, daily_report)
+scripts/             ETH monitor, daily report, backtest/hyperopt helpers
 tests/               pytest test suite
-research/            Research scripts and analysis
 ```
 
 ### Key Components
@@ -34,8 +59,8 @@ research/            Research scripts and analysis
 ## Market & Exchange
 
 - **Exchange**: OKX futures, isolated margin
-- **Pairs**: ETH/USDT:USDT, SOL/USDT:USDT, SPX/USDT:USDT, DOGE/USDT:USDT
-- **Timeframe**: 15m primary
+- **Pairs**: ETH/USDT:USDT (primary focus)
+- **Timeframe**: 15m
 - **Leverage**: 3x default, 5x max
 - **Trading**: 24/7, both LONG and SHORT
 
@@ -47,54 +72,42 @@ research/            Research scripts and analysis
 - Round-trip (taker both sides): ~0.10%
 - With 24h hold including funding: ~0.13%
 
-## Active Strategies (live/dry-run)
+## Active Strategies
 
-Only Grade A and B are active. Grade C/F are research-only.
+Only Grade A and B are active. Parameters in `config/base.yaml` under `strategies.<name>`.
 
-| Strategy | Grade | Pairs | Description |
-|----------|-------|-------|-------------|
-| regime_adaptive | A | ETH, SOL, SPX, DOGE | ADX regime detection, trending/ranging signals, EMA cross freshness |
-| volume_spike_rev | B | ETH, SOL, SPX | Big red candle (body>55%) + volume spike (>3x EMA) + RSI 15-50 for SHORT; hammer + RSI<25 for LONG |
-| cb_adx_breakout | B | ETH, SOL, SPX, DOGE | Bollinger bandwidth compression + ADX<30 declining → breakout entry |
+| Strategy | Grade | Description |
+|----------|-------|-------------|
+| regime_adaptive | A | ADX regime detection, trending/ranging signals, EMA cross freshness |
+| volume_spike_rev | B | Volume spike + big red candle reversal SHORT; hammer + RSI<25 LONG |
+| cb_adx_breakout | B | Bollinger bandwidth compression + ADX<30 declining → breakout |
+| ha_stoch_rev | B | Heikin-Ashi candle color reversal + Stochastic oversold/overbought |
+| stoch_trend_pullback | B | Stochastic pullback in established EMA trend |
 
-### Inactive Strategies (Grade C/F)
+## ETH Market Monitor (`scripts/eth_monitor.py`)
 
-| Strategy | Grade | Notes |
-|----------|-------|-------|
-| meanrev_confluence | F | RSI + BB + volume, underperforms |
-| trend_composite | C | EMA cross + ADX + MACD |
-| compression_breakout | C | BB squeeze breakout |
-| volatility_compression | F | BB/KC squeeze (ETH/SPX only) |
-| funding_contrarian | C | Extreme funding rate fade |
-| micro_pullback | C | EMA pullback in strong trend |
-| nr7_breakout, nr4_breakout, donchian_breakout, vwap_meanrev, cb_nr7_breakout | F | Research rejects |
+Standalone process — runs independently from the trading bot. Sends Telegram alerts only when something notable happens.
 
-### Latest Backtest (143d, Jan 15 - Jun 7, 2026)
-
-| Strategy | Trades | Profit | WR | Avg Duration |
-|----------|--------|--------|-----|-------------|
-| volume_spike_rev | 72 | +96.4% | 62% | 15m |
-| cb_adx_breakout | 318 | +90.1% | 49% | 96m |
-| regime_adaptive | 23 | +65.7% | 48% | 18h |
-| **TOTAL** | **413** | **+27.56% wallet** | **51.1%** | **2h41m** |
-
-Max drawdown: 1.75%, Sharpe: 6.27, Profit factor: 3.23
-
-## Strategy Framework
-
-Each strategy in `strategies/<name>.py` inherits `BaseStrategy`:
-
-```python
-@register_strategy
-class MyStrategy(BaseStrategy):
-    name = "my_strategy"
-
-    def compute_indicators(self, df, metadata) -> df
-    def detect_entries(self, df, pair) -> list[Signal]
-    def detect_exits(self, df, pair, trade_info) -> ExitRequest | None
+```
+while True (10s):
+    ├── OKX ticker → compare vs S/R levels → alert on touch/break
+    │
+    ├── Every 5 min:
+    │   ├── Market context (funding, OI, taker ratio, L/S, liquidations)
+    │   │   → alert only on extreme conditions
+    │   └── News: RSS (CoinTelegraph, CoinDesk, Decrypt, Blockworks)
+    │       → filter ETH keywords → dedup → FinBERT classify
+    │       → alert only NEGATIVE with confidence > 75%
+    │
+    └── Every 24h: Fear & Greed index → alert if change > 10 points
 ```
 
-Parameters loaded from `config/base.yaml` under `strategies.<name>`.
+```bash
+python scripts/eth_monitor.py                  # continuous loop
+python scripts/eth_monitor.py --once --verbose  # single cycle, print everything
+```
+
+News is informational only — NOT used as a trading filter.
 
 ## Risk Management
 
@@ -120,68 +133,41 @@ Parameters loaded from `config/base.yaml` under `strategies.<name>`.
 | C | > 1.1 | > 45% | < 0.10 | < 20% |
 | F | < 1.0 | any | > 0.10 | > 20% |
 
-Only Grade A and B strategies are active in live trading. Grade C requires further validation.
-
-## Validation Requirements
-
-- Minimum 90 days of data, 50+ trades
-- Walk-forward: 60d in-sample / 30d out-of-sample, 30d step
-- Monte Carlo: 100 signal-time permutations, p < 0.05
-- Must pass on each pair independently
+Only Grade A and B strategies are active in live trading.
 
 ## Key Commands
 
 ```bash
-# Run backtest
-python ft_run.py backtesting --strategy CryptoEngine --timerange 20260101-
-
-# Run hyperopt
-python ft_run.py hyperopt --strategy CryptoEngine --hyperopt-loss SharpeHyperOptLoss -e 500
-
 # Dry-run trading
 python ft_run.py trade --strategy CryptoEngine --env dryrun
 
+# Backtest
+python ft_run.py backtesting --strategy CryptoEngine --timerange 20260101-
+
+# Hyperopt
+python ft_run.py hyperopt --strategy CryptoEngine --hyperopt-loss SharpeHyperOptLoss -e 500
+
 # Download data
-python ft_run.py download-data --exchange okx --pairs BTC/USDT:USDT ETH/USDT:USDT SOL/USDT:USDT SPX/USDT:USDT NVDA/USDT:USDT -t 15m 1h --days 180
+python ft_run.py download-data --exchange okx --pairs ETH/USDT:USDT -t 15m 1h --days 180
+
+# ETH monitor (separate terminal)
+python scripts/eth_monitor.py --verbose
 ```
 
 ## Config
 
 - **Single source of truth**: `config/base.yaml` — all strategy parameters, risk settings, market config
-- **Env overlays**: `config/env/{backtest,dryrun,live}.yaml` — environment-specific overrides
+- **Env overlays**: `config/env/{dryrun,live}.yaml` — credentials + environment overrides (gitignored, use `.example` as template)
 - **Generated**: Freqtrade JSON config generated on-the-fly by `AppConfig.get_freqtrade_config()`
 - **Never hardcode** parameters in strategy files
-
-## File Conventions
-
-- Strategy code: `strategies/tf_15m/<name>.py` (15m timeframe), `strategies/tf_5m/<name>.py` (5m)
-- Strategy parameters: `config/base.yaml` under `strategies.<name>`
-- Research scripts: `research/analyze_<name>.py`
-- Backtest results: `backtest_results/`
-- External research: `E:\Trading\research\` (VN30F1M adapted strategies)
 
 ## Environment
 
 - Python 3.12, Windows 11
-- Corporate proxy: F-Soft (SSL bypass via `ft_run.py`)
 - Telegram notifications enabled
 - FreqUI on localhost:8080
 
-## Research Pipeline
-
-```
-researcher agent    -> candidate discovery (web, papers, E:\Trading\research)
-analyst agent       -> data-driven measurement against random baseline
-backtester agent    -> freqtrade backtest + walk-forward + hyperopt
-backtest-validator  -> Monte Carlo + grading (A/B/C/F)
-reviewer agent      -> code review (safety, config, integration)
-qa_tester agent     -> end-to-end QA (runtime, regression, smoke tests)
-circuit_breaker     -> live performance monitoring + auto-disable
-```
-
 ## Code Change Workflow
-
-When modifying or adding strategy code, follow this pipeline:
 
 1. **Backtest** — Run offline backtest (`scripts/backtest_offline.py` or `scripts/hyperopt_fast.py`)
 2. **Analyst** — Measure signal quality against random baseline, check for over-trading

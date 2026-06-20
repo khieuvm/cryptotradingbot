@@ -1,4 +1,5 @@
 # Dry-run environment overlay
+# Copy to dryrun.yaml and fill in your credentials
 dry_run: true
 dry_run_wallet: 500
 stake_amount: 50
@@ -15,8 +16,8 @@ api_server:
 
 telegram:
   enabled: true
-  token: "8644600176:AAEoExWngxwZSI27AGGoGLeOE-lkeidlCHk"
-  chat_id: "6200159681"
+  token: ""      # BotFather token
+  chat_id: ""    # your chat ID
 
 logging:
   level: INFO
