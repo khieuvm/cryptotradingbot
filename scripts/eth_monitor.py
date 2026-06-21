@@ -499,7 +499,7 @@ def compute_order_blocks(df: pd.DataFrame, tf: str) -> list[dict]:
     Bullish OB = last bearish candle before 3+ consecutive bullish candles (support zone).
     Bearish OB = last bullish candle before 3+ consecutive bearish candles (resistance zone).
     """
-    df = df.tail(120).reset_index(drop=True)
+    df = df.tail(121).iloc[:-1].reset_index(drop=True)
     n = len(df)
     if n < 10:
         return []
@@ -512,20 +512,20 @@ def compute_order_blocks(df: pd.DataFrame, tf: str) -> list[dict]:
         # Bullish OB
         if all(df["close"].iloc[i - j] > df["open"].iloc[i - j] for j in range(IMPULSE_BARS)):
             ob_idx = i - IMPULSE_BARS
-            if ob_idx >= 0 and df["close"].iloc[ob_idx] < df["open"].iloc[ob_idx]:
+            if df["close"].iloc[ob_idx] < df["open"].iloc[ob_idx]:
                 ob_high = float(df["high"].iloc[ob_idx])
                 ob_low = float(df["low"].iloc[ob_idx])
-                if current_price > ob_low:  # not fully violated
+                if current_price > ob_low:
                     obs.append({"type": "bullish_ob", "high": ob_high, "low": ob_low,
                                 "price": (ob_high + ob_low) / 2, "method": "ob"})
 
         # Bearish OB
         if all(df["close"].iloc[i - j] < df["open"].iloc[i - j] for j in range(IMPULSE_BARS)):
             ob_idx = i - IMPULSE_BARS
-            if ob_idx >= 0 and df["close"].iloc[ob_idx] > df["open"].iloc[ob_idx]:
+            if df["close"].iloc[ob_idx] > df["open"].iloc[ob_idx]:
                 ob_high = float(df["high"].iloc[ob_idx])
                 ob_low = float(df["low"].iloc[ob_idx])
-                if current_price < ob_high:  # not fully violated
+                if current_price < ob_high:
                     obs.append({"type": "bearish_ob", "high": ob_high, "low": ob_low,
                                 "price": (ob_high + ob_low) / 2, "method": "ob"})
 
@@ -546,9 +546,15 @@ def compute_order_blocks(df: pd.DataFrame, tf: str) -> list[dict]:
 
 def detect_ob_events(obs: list[dict], price: float, prev_price: float,
                      ob_state: dict) -> list[dict]:
-    """Alert when price enters an OB zone (prev_price outside → price inside)."""
+    """Alert when price enters an OB zone (prev_price outside -> price inside)."""
     events = []
     now = datetime.now(timezone.utc)
+
+    # Prune stale keys (>24h)
+    stale = [k for k, v in ob_state.items()
+             if (now - datetime.fromisoformat(v["ts"])).total_seconds() > 86400]
+    for k in stale:
+        del ob_state[k]
 
     for ob in obs:
         ob_high, ob_low = ob["high"], ob["low"]
@@ -562,8 +568,10 @@ def detect_ob_events(obs: list[dict], price: float, prev_price: float,
 
         prev_inside = ob_low <= prev_price <= ob_high
         now_inside = ob_low <= price <= ob_high
+        gap_through = ((prev_price < ob_low and price > ob_high) or
+                       (prev_price > ob_high and price < ob_low))
 
-        if not prev_inside and now_inside:
+        if (not prev_inside and now_inside) or gap_through:
             events.append({**ob, "event": "ob_test", "close": price})
             ob_state[sk] = {"event": "ob_test", "ts": now.isoformat()}
 
