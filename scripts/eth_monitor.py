@@ -494,9 +494,86 @@ def detect_events(levels: list[dict], price: float, prev_price: float,
     return events
 
 
+def compute_order_blocks(df: pd.DataFrame, tf: str) -> list[dict]:
+    """Detect valid Order Blocks (SMC/ICT).
+    Bullish OB = last bearish candle before 3+ consecutive bullish candles (support zone).
+    Bearish OB = last bullish candle before 3+ consecutive bearish candles (resistance zone).
+    """
+    df = df.tail(120).reset_index(drop=True)
+    n = len(df)
+    if n < 10:
+        return []
+
+    current_price = float(df["close"].iloc[-1])
+    IMPULSE_BARS = 3
+    obs: list[dict] = []
+
+    for i in range(IMPULSE_BARS, n):
+        # Bullish OB
+        if all(df["close"].iloc[i - j] > df["open"].iloc[i - j] for j in range(IMPULSE_BARS)):
+            ob_idx = i - IMPULSE_BARS
+            if ob_idx >= 0 and df["close"].iloc[ob_idx] < df["open"].iloc[ob_idx]:
+                ob_high = float(df["high"].iloc[ob_idx])
+                ob_low = float(df["low"].iloc[ob_idx])
+                if current_price > ob_low:  # not fully violated
+                    obs.append({"type": "bullish_ob", "high": ob_high, "low": ob_low,
+                                "price": (ob_high + ob_low) / 2, "method": "ob"})
+
+        # Bearish OB
+        if all(df["close"].iloc[i - j] < df["open"].iloc[i - j] for j in range(IMPULSE_BARS)):
+            ob_idx = i - IMPULSE_BARS
+            if ob_idx >= 0 and df["close"].iloc[ob_idx] > df["open"].iloc[ob_idx]:
+                ob_high = float(df["high"].iloc[ob_idx])
+                ob_low = float(df["low"].iloc[ob_idx])
+                if current_price < ob_high:  # not fully violated
+                    obs.append({"type": "bearish_ob", "high": ob_high, "low": ob_low,
+                                "price": (ob_high + ob_low) / 2, "method": "ob"})
+
+    # Deduplicate: keep newest, cluster within 0.5%
+    unique_obs: list[dict] = []
+    for ob in reversed(obs):
+        if not any(
+            ex["type"] == ob["type"] and
+            abs(ob["price"] - ex["price"]) / ex["price"] < 0.005
+            for ex in unique_obs
+        ):
+            unique_obs.append(ob)
+            if len(unique_obs) >= 6:
+                break
+
+    return unique_obs
+
+
+def detect_ob_events(obs: list[dict], price: float, prev_price: float,
+                     ob_state: dict) -> list[dict]:
+    """Alert when price enters an OB zone (prev_price outside → price inside)."""
+    events = []
+    now = datetime.now(timezone.utc)
+
+    for ob in obs:
+        ob_high, ob_low = ob["high"], ob["low"]
+        sk = f"{ob['type']}_{ob_low:.2f}_{ob_high:.2f}"
+
+        last = ob_state.get(sk)
+        if last:
+            last_ts = datetime.fromisoformat(last["ts"])
+            if (now - last_ts).total_seconds() < DEBOUNCE_H * 3600:
+                continue
+
+        prev_inside = ob_low <= prev_price <= ob_high
+        now_inside = ob_low <= price <= ob_high
+
+        if not prev_inside and now_inside:
+            events.append({**ob, "event": "ob_test", "close": price})
+            ob_state[sk] = {"event": "ob_test", "ts": now.isoformat()}
+
+    return events
+
+
 class LevelCache:
     def __init__(self):
         self._levels: dict[str, list[dict]] = {}
+        self._obs: dict[str, list[dict]] = {}
         self._last_candle_ts: dict[str, float] = {}
         self._pivot_levels: list[dict] = []
         self._pivot_date: str = ""
@@ -510,6 +587,7 @@ class LevelCache:
             try:
                 df = fetch_candles(tf)
                 self._levels[tf] = compute_swing_sr(df, tf)
+                self._obs[tf] = compute_order_blocks(df, tf)
                 self._last_candle_ts[tf] = now
             except Exception:
                 pass
@@ -520,6 +598,9 @@ class LevelCache:
             self._pivot_date = today
 
         return self._levels.get(tf, []) + self._pivot_levels
+
+    def get_order_blocks(self, tf: str) -> list[dict]:
+        return self._obs.get(tf, [])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -739,6 +820,26 @@ def build_context_alert(alerts: list[str], price: float, ctx: dict) -> str:
             f"\U0001f4e1 {now_str}")
 
 
+def build_ob_alert(events: list[dict], tf: str) -> str:
+    now_str = datetime.now(timezone.utc).strftime("%d/%m %H:%M:%S")
+    lines = []
+    for ev in events:
+        price = ev["close"]
+        high, low = ev["high"], ev["low"]
+        if ev["type"] == "bullish_ob":
+            action = "\U0001f7e2 Test Bullish OB (Ho Tro)"
+            tip = "\U0001f7e2 Vung mua tiem nang — quan sat phan ung gia"
+        else:
+            action = "\U0001f534 Test Bearish OB (Khang Cu)"
+            tip = "\U0001f534 Vung ban tiem nang — than trong LONG"
+        msg = (f"*ETH* [{tf}] \u2014 {action}\n"
+               f"\U0001f4cd ${price:,.1f} | Zone ${low:,.1f}\u2013${high:,.1f}\n"
+               f"{tip}\n"
+               f"\U0001f4e1 {now_str}")
+        lines.append(msg)
+    return "\n\n".join(lines)
+
+
 def build_fng_alert(fng: dict) -> str:
     now_str = datetime.now(timezone.utc).strftime("%d/%m %H:%M")
     val = fng["value"]
@@ -771,7 +872,7 @@ def load_state() -> dict:
             return json.loads(STATE_FILE.read_text(encoding="utf-8"))
         except Exception:
             pass
-    return {"sr": {}, "seen_news": [], "last_fng": 0}
+    return {"sr": {}, "ob": {}, "seen_news": [], "last_fng": 0}
 
 
 def save_state(state: dict) -> None:
@@ -830,6 +931,17 @@ def run(verbose: bool = False, once: bool = False) -> None:
                         label = "KC" if ev["type"] == "resistance" else "HT"
                         print(f"  [{tf}] {ev['event']} {label} @ ${ev['price']:.1f}")
                 send_tg(build_sr_alert(events, tf, c_alerts))
+
+        # ── Order Blocks (every 10s) ─────────────────────────────────────
+        for tf in TIMEFRAMES:
+            obs = cache.get_order_blocks(tf)
+            ob_state = state.setdefault("ob", {}).setdefault(tf, {})
+            ob_events = detect_ob_events(obs, price, prev_price, ob_state)
+            if ob_events:
+                if verbose:
+                    for ev in ob_events:
+                        print(f"  [{tf}] OB {ev['type']} @ ${ev['low']:.1f}–${ev['high']:.1f}")
+                send_tg(build_ob_alert(ob_events, tf))
 
         # ── Market Context (every 5 min) ─────────────────────────────────
         if now - last_ctx > CONTEXT_INTERVAL:
