@@ -153,100 +153,230 @@ def fetch_daily_candle() -> dict | None:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MARKET CONTEXT
+# MARKET CONTEXT — OKX + Binance + Bybit
 # ══════════════════════════════════════════════════════════════════════════════
-def fetch_market_context() -> dict:
-    ctx: dict = {}
+def _http_json(url: str, params: dict | None = None) -> dict | list:
+    if params:
+        url += "?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return json.loads(resp.read())
+
+
+def _fetch_binance() -> dict:
+    """Binance Futures — ~50% market volume."""
+    d: dict = {}
     try:
-        d = _okx_get("/api/v5/public/funding-rate", {"instId": INST_ID})["data"][0]
-        ctx["funding"] = float(d["fundingRate"])
+        rows = _http_json("https://fapi.binance.com/fapi/v1/fundingRate",
+                          {"symbol": "ETHUSDT", "limit": "1"})
+        d["funding"] = float(rows[0]["fundingRate"]) if rows else None
     except Exception:
-        ctx["funding"] = None
+        d["funding"] = None
 
     try:
-        d = _okx_get("/api/v5/public/open-interest",
-                     {"instType": "SWAP", "instId": INST_ID})["data"][0]
-        ctx["oi_usd"] = float(d.get("oiUsd", 0))
+        rows = _http_json("https://fapi.binance.com/futures/data/openInterestHist",
+                          {"symbol": "ETHUSDT", "period": "15m", "limit": "2"})
+        if len(rows) >= 2:
+            cur = float(rows[-1]["sumOpenInterestValue"])
+            prev = float(rows[-2]["sumOpenInterestValue"])
+            d["oi_usd"] = cur
+            d["oi_delta"] = (cur - prev) / prev * 100 if prev else 0
+        else:
+            d["oi_usd"] = None
+            d["oi_delta"] = None
     except Exception:
-        ctx["oi_usd"] = None
+        d["oi_usd"] = None
+        d["oi_delta"] = None
+
+    try:
+        rows = _http_json("https://fapi.binance.com/futures/data/globalLongShortAccountRatio",
+                          {"symbol": "ETHUSDT", "period": "15m", "limit": "1"})
+        d["ls_ratio"] = float(rows[0]["longShortRatio"]) if rows else None
+    except Exception:
+        d["ls_ratio"] = None
+
+    try:
+        rows = _http_json("https://fapi.binance.com/futures/data/topLongShortAccountRatio",
+                          {"symbol": "ETHUSDT", "period": "15m", "limit": "1"})
+        d["ls_top"] = float(rows[0]["longShortRatio"]) if rows else None
+    except Exception:
+        d["ls_top"] = None
+
+    try:
+        rows = _http_json("https://fapi.binance.com/futures/data/takerlongshortRatio",
+                          {"symbol": "ETHUSDT", "period": "15m", "limit": "1"})
+        if rows:
+            d["taker_buy_pct"] = float(rows[0]["buyVol"]) / (float(rows[0]["buyVol"]) + float(rows[0]["sellVol"])) * 100
+        else:
+            d["taker_buy_pct"] = None
+    except Exception:
+        d["taker_buy_pct"] = None
+
+    return d
+
+
+def _fetch_bybit() -> dict:
+    """Bybit — ~20% market volume."""
+    d: dict = {}
+    try:
+        raw = _http_json("https://api.bybit.com/v5/market/funding/history",
+                         {"category": "linear", "symbol": "ETHUSDT", "limit": "1"})
+        rows = raw.get("result", {}).get("list", [])
+        d["funding"] = float(rows[0]["fundingRate"]) if rows else None
+    except Exception:
+        d["funding"] = None
+
+    try:
+        raw = _http_json("https://api.bybit.com/v5/market/open-interest",
+                         {"category": "linear", "symbol": "ETHUSDT", "intervalTime": "15min", "limit": "2"})
+        rows = raw.get("result", {}).get("list", [])
+        if len(rows) >= 2:
+            cur = float(rows[0]["openInterest"])
+            prev = float(rows[1]["openInterest"])
+            d["oi_delta"] = (cur - prev) / prev * 100 if prev else 0
+        else:
+            d["oi_delta"] = None
+    except Exception:
+        d["oi_delta"] = None
+
+    try:
+        raw = _http_json("https://api.bybit.com/v5/market/account-ratio",
+                         {"category": "linear", "symbol": "ETHUSDT", "period": "15min", "limit": "1"})
+        rows = raw.get("result", {}).get("list", [])
+        if rows:
+            buy = float(rows[0]["buyRatio"])
+            sell = float(rows[0]["sellRatio"])
+            d["ls_ratio"] = buy / sell if sell else 1.0
+        else:
+            d["ls_ratio"] = None
+    except Exception:
+        d["ls_ratio"] = None
+
+    return d
+
+
+def _fetch_okx_context() -> dict:
+    """OKX — our trading venue, ~15% market volume."""
+    d: dict = {}
+    try:
+        raw = _okx_get("/api/v5/public/funding-rate", {"instId": INST_ID})["data"][0]
+        d["funding"] = float(raw["fundingRate"])
+    except Exception:
+        d["funding"] = None
+
+    try:
+        raw = _okx_get("/api/v5/public/open-interest",
+                       {"instType": "SWAP", "instId": INST_ID})["data"][0]
+        d["oi_usd"] = float(raw.get("oiUsd", 0))
+    except Exception:
+        d["oi_usd"] = None
 
     try:
         rows = _okx_get("/api/v5/rubik/stat/contracts/open-interest-history",
                         {"instId": INST_ID, "period": "15m", "limit": "5"})["data"]
         if len(rows) >= 2:
-            ctx["oi_delta"] = (float(rows[0][3]) - float(rows[1][3])) / float(rows[1][3]) * 100
+            d["oi_delta"] = (float(rows[0][3]) - float(rows[1][3])) / float(rows[1][3]) * 100
         else:
-            ctx["oi_delta"] = None
+            d["oi_delta"] = None
     except Exception:
-        ctx["oi_delta"] = None
+        d["oi_delta"] = None
 
     try:
         rows = _okx_get("/api/v5/rubik/stat/taker-volume-contract",
                         {"instId": INST_ID, "period": "15m", "limit": "1"})["data"]
         if rows:
             buy, sell = float(rows[0][1]), float(rows[0][2])
-            ctx["taker_buy_pct"] = buy / (buy + sell) * 100 if (buy + sell) else 50
+            d["taker_buy_pct"] = buy / (buy + sell) * 100 if (buy + sell) else 50
         else:
-            ctx["taker_buy_pct"] = None
+            d["taker_buy_pct"] = None
     except Exception:
-        ctx["taker_buy_pct"] = None
+        d["taker_buy_pct"] = None
 
     try:
         rows = _okx_get("/api/v5/rubik/stat/contracts/long-short-account-ratio-contract",
                         {"instId": INST_ID, "period": "15m", "limit": "1"})["data"]
-        ctx["ls_ratio"] = float(rows[0][1]) if rows else None
+        d["ls_ratio"] = float(rows[0][1]) if rows else None
     except Exception:
-        ctx["ls_ratio"] = None
+        d["ls_ratio"] = None
 
     try:
         rows = _okx_get("/api/v5/rubik/stat/contracts/long-short-account-ratio-contract-top-trader",
                         {"instId": INST_ID, "period": "15m", "limit": "1"})["data"]
-        ctx["ls_top"] = float(rows[0][1]) if rows else None
+        d["ls_top"] = float(rows[0][1]) if rows else None
     except Exception:
-        ctx["ls_top"] = None
+        d["ls_top"] = None
 
-    try:
-        raw = _okx_get("/api/v5/public/liquidation-orders",
-                       {"instType": "SWAP", "uly": "ETH-USDT", "state": "filled", "limit": "100"})
-        details = []
-        for item in raw.get("data", []):
-            details.extend(item.get("details", []))
-        now_ms = time.time() * 1000
-        recent = [d for d in details if now_ms - float(d["ts"]) < 3600_000]
-        ctx["liq_long"] = sum(float(d["sz"]) for d in recent if d["posSide"] == "long")
-        ctx["liq_short"] = sum(float(d["sz"]) for d in recent if d["posSide"] == "short")
-    except Exception:
-        ctx["liq_long"] = None
-        ctx["liq_short"] = None
-
-    return ctx
+    return d
 
 
-def context_alerts(ctx: dict) -> list[str]:
+def _avg(values: list[float | None]) -> float | None:
+    """Average non-None values."""
+    valid = [v for v in values if v is not None]
+    return sum(valid) / len(valid) if valid else None
+
+
+def fetch_market_context() -> dict:
+    """Aggregate market data from OKX + Binance + Bybit."""
+    okx = _fetch_okx_context()
+    bnb = _fetch_binance()
+    byb = _fetch_bybit()
+
+    return {
+        "funding_okx": okx.get("funding"),
+        "funding_avg": _avg([okx.get("funding"), bnb.get("funding"), byb.get("funding")]),
+        "oi_delta": _avg([okx.get("oi_delta"), bnb.get("oi_delta"), byb.get("oi_delta")]),
+        "taker_buy_pct": _avg([okx.get("taker_buy_pct"), bnb.get("taker_buy_pct")]),
+        "ls_crowd": _avg([okx.get("ls_ratio"), bnb.get("ls_ratio"), byb.get("ls_ratio")]),
+        "ls_smart": _avg([okx.get("ls_top"), bnb.get("ls_top")]),
+        "_sources": {
+            "okx": {k: v for k, v in okx.items() if v is not None},
+            "binance": {k: v for k, v in bnb.items() if v is not None},
+            "bybit": {k: v for k, v in byb.items() if v is not None},
+        },
+    }
+
+
+def context_alerts(ctx: dict, state: dict) -> list[str]:
+    """Only alert on extreme + not recently alerted (1h debounce per type).
+    Re-alert immediately if condition worsens (value more extreme than last)."""
     alerts = []
-    fr = ctx.get("funding")
+    now = time.time()
+    ctx_state = state.setdefault("ctx_debounce", {})
+
+    def _should_alert(key: str, value: float, threshold: float) -> bool:
+        last = ctx_state.get(key)
+        if last is None:
+            ctx_state[key] = {"v": value, "ts": now}
+            return True
+        elapsed = now - last["ts"]
+        worse = abs(value) > abs(last["v"]) * 1.2
+        if elapsed > 3600 or worse:
+            ctx_state[key] = {"v": value, "ts": now}
+            return True
+        return False
+
+    fr = ctx.get("funding_avg")
     if fr is not None and abs(fr) > 0.0005:
-        side = "LONG dong" if fr > 0 else "SHORT dong"
-        alerts.append(f"Funding {fr*100:+.4f}% ({side})")
+        if _should_alert("funding", fr, 0.0005):
+            side = "LONG dong" if fr > 0 else "SHORT dong"
+            alerts.append(f"Funding {fr*100:+.4f}% ({side})")
 
     bp = ctx.get("taker_buy_pct")
     if bp is not None and (bp > 60 or bp < 40):
-        bias = "BUY ap dao" if bp > 60 else "SELL ap dao"
-        alerts.append(f"Taker {bp:.0f}% buy ({bias})")
+        if _should_alert("taker", bp - 50, 10):
+            bias = "BUY ap dao" if bp > 60 else "SELL ap dao"
+            alerts.append(f"Taker {bp:.0f}% buy ({bias})")
 
     oi_d = ctx.get("oi_delta")
     if oi_d is not None and abs(oi_d) > 3:
-        alerts.append(f"OI {oi_d:+.1f}% (15m)")
+        if _should_alert("oi", oi_d, 3):
+            alerts.append(f"OI {oi_d:+.1f}% (15m)")
 
-    ls = ctx.get("ls_ratio")
-    lst = ctx.get("ls_top")
+    ls = ctx.get("ls_crowd")
+    lst = ctx.get("ls_smart")
     if ls is not None and lst is not None and abs(ls - lst) > 0.5:
-        alerts.append(f"L/S crowd {ls:.2f} vs smart {lst:.2f}")
-
-    ll = ctx.get("liq_long")
-    sl = ctx.get("liq_short")
-    if ll is not None and sl is not None and (ll > 500 or sl > 500):
-        alerts.append(f"Liq 1h: L{ll:.0f}/S{sl:.0f} ETH")
+        if _should_alert("ls_div", ls - lst, 0.5):
+            alerts.append(f"L/S crowd {ls:.2f} vs smart {lst:.2f}")
 
     return alerts
 
@@ -546,10 +676,67 @@ def build_news_alert(notable: list[dict]) -> str:
     return f"{header}{body}\n\u26a0\ufe0f Canh than LONG\n\U0001f4e1 {now_str}"
 
 
-def build_context_alert(alerts: list[str], price: float) -> str:
+def _conclude(ctx: dict, alerts: list[str]) -> str:
+    """Generate a short conclusion from the aggregated context."""
+    signals = []
+
+    fr = ctx.get("funding_avg")
+    if fr is not None:
+        if fr > 0.0005:
+            signals.append(("bear", "Funding cao, long dong"))
+        elif fr < -0.0005:
+            signals.append(("bull", "Funding am, short dong"))
+
+    bp = ctx.get("taker_buy_pct")
+    if bp is not None:
+        if bp > 60:
+            signals.append(("bull", "Taker mua manh"))
+        elif bp < 40:
+            signals.append(("bear", "Taker ban manh"))
+
+    oi_d = ctx.get("oi_delta")
+    if oi_d is not None and abs(oi_d) > 3:
+        if oi_d > 0:
+            signals.append(("bull", "Tien do vao"))
+        else:
+            signals.append(("bear", "Tien rut ra"))
+
+    ls_c = ctx.get("ls_crowd")
+    ls_s = ctx.get("ls_smart")
+    if ls_c is not None and ls_s is not None:
+        div = ls_c - ls_s
+        if div > 0.5:
+            signals.append(("bear", "Retail qua lac quan"))
+        elif div < -0.5:
+            signals.append(("bull", "Smart money long hon"))
+
+    if not signals:
+        return "\U0001f7e1 Binh thuong, khong co gi dac biet"
+
+    bull = sum(1 for s, _ in signals if s == "bull")
+    bear = sum(1 for s, _ in signals if s == "bear")
+
+    if bear > bull:
+        emoji = "\U0001f534"
+        verdict = "THAN TRONG LONG"
+    elif bull > bear:
+        emoji = "\U0001f7e2"
+        verdict = "CO THE LONG"
+    else:
+        emoji = "\U0001f7e1"
+        verdict = "TIN HIEU LAN LON"
+
+    return f"{emoji} *{verdict}*"
+
+
+def build_context_alert(alerts: list[str], price: float, ctx: dict) -> str:
     now_str = datetime.now(timezone.utc).strftime("%d/%m %H:%M")
     body = "\n  ".join(alerts)
-    return f"\u26a0\ufe0f *ETH* ${price:,.2f}\n  {body}\n\U0001f4e1 {now_str}"
+    conclusion = _conclude(ctx, alerts)
+    return (f"\u26a0\ufe0f *ETH* ${price:,.2f} (OKX+Binance+Bybit)\n"
+            f"  {body}\n"
+            f"{conclusion}\n"
+            f"\U0001f4e1 {now_str}")
 
 
 def build_fng_alert(fng: dict) -> str:
@@ -559,8 +746,19 @@ def build_fng_alert(fng: dict) -> str:
     yest = fng["yesterday"]
     change = val - yest
     emoji = "\U0001f7e2" if val > 60 else "\U0001f534" if val < 40 else "\U0001f7e1"
+    if val < 25:
+        tip = "\U0001f534 *Extreme Fear* - co hoi mua neu co tin hieu"
+    elif val < 40:
+        tip = "\U0001f7e1 Thi truong so, than trong"
+    elif val > 75:
+        tip = "\U0001f534 *Extreme Greed* - than trong, co the dump"
+    elif val > 60:
+        tip = "\U0001f7e2 Thi truong lac quan"
+    else:
+        tip = "\U0001f7e1 Trung tinh"
     return (f"{emoji} *Fear & Greed: {val}* ({lbl})\n"
             f"  Yesterday: {yest} | Change: {change:+d}\n"
+            f"{tip}\n"
             f"\U0001f4e1 {now_str}")
 
 
@@ -620,7 +818,7 @@ def run(verbose: bool = False, once: bool = False) -> None:
         now = time.time()
 
         # ── S/R (every 10s) ──────────────────────────────────────────────
-        c_alerts = context_alerts(ctx)
+        c_alerts = context_alerts(ctx, state)
         for tf in TIMEFRAMES:
             levels = cache.get_levels(tf, price)
             sk = f"ETH_{tf}"
@@ -639,17 +837,23 @@ def run(verbose: bool = False, once: bool = False) -> None:
                 ctx = fetch_market_context()
                 last_ctx = now
                 if verbose:
-                    fr = ctx.get("funding")
+                    fr = ctx.get("funding_avg")
                     bp = ctx.get("taker_buy_pct")
                     oi_d = ctx.get("oi_delta")
+                    ls_c = ctx.get("ls_crowd")
+                    ls_s = ctx.get("ls_smart")
+                    src = ctx.get("_sources", {})
+                    n_src = sum(1 for s in src.values() if s)
                     parts = []
                     if fr is not None: parts.append(f"FR:{fr*100:+.4f}%")
                     if bp is not None: parts.append(f"Taker:{bp:.0f}%")
                     if oi_d is not None: parts.append(f"OI:{oi_d:+.1f}%")
-                    print(f"  [CTX] {' | '.join(parts)}")
-                alerts = context_alerts(ctx)
+                    if ls_c is not None: parts.append(f"L/S:{ls_c:.2f}")
+                    if ls_s is not None: parts.append(f"Smart:{ls_s:.2f}")
+                    print(f"  [CTX {n_src} san] {' | '.join(parts)}")
+                alerts = context_alerts(ctx, state)
                 if alerts:
-                    send_tg(build_context_alert(alerts, price))
+                    send_tg(build_context_alert(alerts, price, ctx))
             except Exception as e:
                 if verbose:
                     print(f"  [CTX ERROR] {e}")
