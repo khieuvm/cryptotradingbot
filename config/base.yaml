@@ -100,6 +100,7 @@ entry_filters:
   btc_ret3_threshold: 0.005
   funding_long_max: 0.0005
   funding_short_min: -0.0005
+  wave_filter_enabled: true
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ACTIVE STRATEGIES
@@ -107,9 +108,7 @@ entry_filters:
 
 active_strategies:
   - regime_adaptive
-  - volume_spike_rev
   - ha_stoch_rev
-  - stoch_trend_pullback
 
 # ── Per-Strategy Configuration ───────────────────────────────────────────────
 strategies:
@@ -310,4 +309,22 @@ strategies:
         exit:
           sl_atr_mult: 1.5
           tp_atr_mult: 2.5
+
+
+  ew_ob:
+    grade: C   # WF 4/4 OOS pass, MC p=0.000. 5m freqtrade: PF=1.12, WR=64.1%, DD=5.02%. Standalone OOS PF=1.63.
+    pairs: [ETH/USDT:USDT]
+    timeframe: 5m
+    startup_candle_count: 60
+    entry:
+      ob_touch_pct: 0.003
+      dedup_bars: 12
+      wave_filter_exempt: true
+    exit:
+      sl_atr_mult: 10.0
+      price_sl_atr: 4.0
+      price_tp_atr: 2.0
+      fixed_sl_only: true
+    stake:
+      default: 1.0
 

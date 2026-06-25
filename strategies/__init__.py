@@ -68,3 +68,11 @@ def _discover_strategies() -> None:
             if info.name.startswith("_"):
                 continue
             importlib.import_module(f"strategies.tf_3m.{info.name}")
+
+    # Discover from strategies/tf_1m/
+    tf_1m_path = Path(pkg.__path__[0]) / "tf_1m"
+    if tf_1m_path.exists():
+        for info in pkgutil.iter_modules([str(tf_1m_path)]):
+            if info.name.startswith("_"):
+                continue
+            importlib.import_module(f"strategies.tf_1m.{info.name}")

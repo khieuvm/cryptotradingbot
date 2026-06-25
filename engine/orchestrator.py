@@ -120,6 +120,9 @@ class Orchestrator:
         from freqtrade.constants import CandleType
         for pair in self.config.get_pairs():
             pairs.add((pair, "1h", CandleType.FUNDING_RATE))
+            tf = self.config.get_timeframe()
+            if tf in ("1m", "3m", "5m"):
+                pairs.add((pair, "15m"))
         return list(pairs)
 
     def get_max_startup_candles(self) -> int:
@@ -422,7 +425,13 @@ class Orchestrator:
             return False
 
         # Wave trend filter: block entries against the wave structure
-        if self._entry_filters.get("wave_filter_enabled", True):
+        # Skip for strategies with their own wave/trend filter (wave_filter_exempt)
+        strat_obj = self._strategies.get(strategy_name)
+        wave_exempt = False
+        if strat_obj is not None:
+            wave_exempt = strat_obj.config.entry.get("wave_filter_exempt", False)
+
+        if self._entry_filters.get("wave_filter_enabled", True) and not wave_exempt:
             wave_trend = self._detect_wave_trend(df)
             if side == "short" and wave_trend == "bullish":
                 if self._should_log_filter(f"wave_short_{pair}", _candle_time):
@@ -572,6 +581,9 @@ class Orchestrator:
             "ml_scalping_sol_3m": "mls3_",
             "ml_scalping_enhanced_3m": "mle3_",
             "fast_scalper_3m": "fs3_",
+            "ha_stoch_rev": "hsr_",
+            "stoch_trend_pullback": "stp_",
+            "ew_ob": "eo_",
             # 5m scalping strategies
             "squeeze_breakout_5m": "sq5_",
             "volume_climax_5m": "vc5_",
@@ -585,7 +597,7 @@ class Orchestrator:
                 val = last_row.get(f"{prefix}{col_suffix}", 0)
                 if val and float(val) > 0:
                     return float(val)
-        for p in ["ra_", "cba_", "vs_", ""]:
+        for p in ["ra_", "cba_", "vs_", "eo_", "hsr_", ""]:
             val = last_row.get(f"{p}atr", 0)
             if val and float(val) > 0:
                 return float(val)

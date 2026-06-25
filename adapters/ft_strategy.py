@@ -213,3 +213,9 @@ class CryptoEngine5m(CryptoEngine):
     """
 
     timeframe = "5m"
+
+
+class CryptoEngine1m(CryptoEngine):
+    """1m-timeframe CryptoEngine for EW+OB scalping strategies."""
+
+    timeframe = "1m"
