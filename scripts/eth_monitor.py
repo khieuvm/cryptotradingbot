@@ -23,6 +23,7 @@ import time
 import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -68,9 +69,16 @@ TF_CONFIG = {
     "1H":  {"swing_window": 5, "swing_lookback": 120, "cluster_pct": 0.005, "n_levels": 6},
 }
 
-TOUCH_PCT = 0.0015
 BREAK_PCT = 0.0005
 DEBOUNCE_H = 4
+
+# Elliott Wave config
+EW_TIMEFRAMES = ["15m", "1H"]
+EW_CONFIG = {
+    "15m": {"zigzag_pct": 1.5, "lookback": 200},
+    "1H":  {"zigzag_pct": 2.5, "lookback": 200},
+}
+EW_INTERVALS = {"15m": 900, "1H": 3600}
 
 STATE_FILE = Path(__file__).parent / "monitor_state.json"
 HEADERS = {"User-Agent": "freqtrade/eth_monitor"}
@@ -487,9 +495,6 @@ def detect_events(levels: list[dict], price: float, prev_price: float,
             events.append({**level, "event": "break_down", "close": price})
             pair_state[sk] = {"event": "break_down", "ts": now.isoformat()}
             continue
-        if abs(price - lp) / lp < TOUCH_PCT:
-            events.append({**level, "event": "touch", "close": price})
-            pair_state[sk] = {"event": "touch", "ts": now.isoformat()}
 
     return events
 
@@ -578,6 +583,422 @@ def detect_ob_events(obs: list[dict], price: float, prev_price: float,
     return events
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# ELLIOTT WAVE DETECTION
+# ══════════════════════════════════════════════════════════════════════════════
+@dataclass
+class ZigZagPoint:
+    index: int
+    price: float
+    point_type: str  # "high" | "low"
+    date: object
+
+
+@dataclass
+class WaveAnalysis:
+    tf: str
+    current_wave: str
+    pattern_type: str
+    confidence: str
+    confidence_score: float
+    direction: str
+    target_zone: tuple
+    invalidation: float
+    pivots: list
+    computed_at: float
+
+
+def compute_zigzag(df: pd.DataFrame, pct_threshold: float) -> list[ZigZagPoint]:
+    """Percentage-based ZigZag filter. Returns alternating high/low pivots."""
+    n = len(df)
+    if n < 3:
+        return []
+
+    threshold = pct_threshold / 100.0
+    pivots: list[ZigZagPoint] = []
+
+    last_high = float(df["high"].iloc[0])
+    last_high_idx = 0
+    last_low = float(df["low"].iloc[0])
+    last_low_idx = 0
+    direction = 0  # 0=unknown, 1=up, -1=down
+
+    for i in range(1, n):
+        high_i = float(df["high"].iloc[i])
+        low_i = float(df["low"].iloc[i])
+
+        if direction == 0:
+            if high_i > last_high:
+                last_high, last_high_idx = high_i, i
+            if low_i < last_low:
+                last_low, last_low_idx = low_i, i
+
+            if last_low > 0 and (last_high - last_low) / last_low >= threshold:
+                if last_low_idx < last_high_idx:
+                    pivots.append(ZigZagPoint(last_low_idx, last_low, "low",
+                                             df["date"].iloc[last_low_idx]))
+                    direction = 1
+                else:
+                    pivots.append(ZigZagPoint(last_high_idx, last_high, "high",
+                                             df["date"].iloc[last_high_idx]))
+                    direction = -1
+
+        elif direction == 1:
+            if high_i > last_high:
+                last_high, last_high_idx = high_i, i
+            if last_high > 0 and (last_high - low_i) / last_high >= threshold:
+                pivots.append(ZigZagPoint(last_high_idx, last_high, "high",
+                                         df["date"].iloc[last_high_idx]))
+                direction = -1
+                last_low, last_low_idx = low_i, i
+
+        elif direction == -1:
+            if low_i < last_low:
+                last_low, last_low_idx = low_i, i
+            if last_low > 0 and (high_i - last_low) / last_low >= threshold:
+                pivots.append(ZigZagPoint(last_low_idx, last_low, "low",
+                                         df["date"].iloc[last_low_idx]))
+                direction = 1
+                last_high, last_high_idx = high_i, i
+
+    # Add final unconfirmed point
+    if direction == 1:
+        pivots.append(ZigZagPoint(last_high_idx, last_high, "high",
+                                  df["date"].iloc[last_high_idx]))
+    elif direction == -1:
+        pivots.append(ZigZagPoint(last_low_idx, last_low, "low",
+                                  df["date"].iloc[last_low_idx]))
+
+    return pivots
+
+
+def _validate_impulse(points: list[ZigZagPoint], trend: str) -> tuple[bool, float]:
+    """Validate 5-wave impulse from 6 alternating pivots. Returns (valid, confidence)."""
+    if len(points) < 6:
+        return False, 0.0
+
+    p = [pt.price for pt in points[:6]]
+
+    if trend == "up":
+        # Expect: L-H-L-H-L-H (p0<p1, p2<p3, p4<p5, overall p5>p0)
+        if p[5] <= p[0]:
+            return False, 0.0
+        if p[2] <= p[0]:  # W2 below W1 start
+            return False, 0.0
+        w1 = p[1] - p[0]
+        w3 = p[3] - p[2]
+        w5 = p[5] - p[4]
+        if w1 <= 0 or w3 <= 0 or w5 <= 0:
+            return False, 0.0
+        if w3 < w1 and w3 < w5:  # W3 shortest
+            return False, 0.0
+    else:
+        # Expect: H-L-H-L-H-L (p0>p1, p2>p3, p4>p5, overall p5<p0)
+        if p[5] >= p[0]:
+            return False, 0.0
+        if p[2] >= p[0]:  # W2 above W1 start
+            return False, 0.0
+        w1 = p[0] - p[1]
+        w3 = p[2] - p[3]
+        w5 = p[4] - p[5]
+        if w1 <= 0 or w3 <= 0 or w5 <= 0:
+            return False, 0.0
+        if w3 < w1 and w3 < w5:
+            return False, 0.0
+
+    confidence = 0.7
+
+    # W4 overlap W1 check
+    if trend == "up":
+        if p[4] <= p[1]:
+            confidence -= 0.35
+    else:
+        if p[4] >= p[1]:
+            confidence -= 0.35
+
+    # Fibonacci guideline checks
+    w2_ret = (p[1] - p[2]) / w1 if trend == "up" else (p[2] - p[1]) / w1
+    if 0.50 <= w2_ret <= 0.618:
+        confidence += 0.1
+    elif 0.382 <= w2_ret <= 0.786:
+        pass
+    else:
+        confidence -= 0.1
+
+    w3_ratio = w3 / w1
+    if w3_ratio >= 1.618:
+        confidence += 0.15
+    elif w3_ratio >= 1.0:
+        confidence += 0.05
+    else:
+        confidence -= 0.1
+
+    w4_ret = (p[3] - p[4]) / w3 if trend == "up" else (p[4] - p[3]) / w3
+    if 0.236 <= w4_ret <= 0.50:
+        confidence += 0.05
+    else:
+        confidence -= 0.05
+
+    if w3 >= w1 and w3 >= w5:
+        confidence += 0.1
+
+    return True, max(0.15, min(1.0, confidence))
+
+
+def _validate_correction(points: list[ZigZagPoint], prior_trend: str) -> tuple[bool, float]:
+    """Validate ABC correction from 4 pivots after a completed impulse."""
+    if len(points) < 4:
+        return False, 0.0
+
+    p = [pt.price for pt in points[:4]]
+    confidence = 0.6
+
+    if prior_trend == "up":
+        # Correction down: H-L-H-L (A down, B up, C down)
+        a_len = p[0] - p[1]
+        if a_len <= 0:
+            return False, 0.0
+        if p[2] >= p[0]:  # B exceeds A start
+            return False, 0.0
+        c_len = p[2] - p[3]
+        if c_len <= 0:
+            return False, 0.0
+        b_ret = (p[2] - p[1]) / a_len
+        c_ratio = c_len / a_len
+    else:
+        # Correction up: L-H-L-H (A up, B down, C up)
+        a_len = p[1] - p[0]
+        if a_len <= 0:
+            return False, 0.0
+        if p[2] <= p[0]:
+            return False, 0.0
+        c_len = p[3] - p[2]
+        if c_len <= 0:
+            return False, 0.0
+        b_ret = (p[1] - p[2]) / a_len
+        c_ratio = c_len / a_len
+
+    if 0.382 <= b_ret <= 0.786:
+        confidence += 0.1
+    else:
+        confidence -= 0.1
+
+    if 0.618 <= c_ratio <= 1.618:
+        confidence += 0.1
+    else:
+        confidence -= 0.15
+
+    return True, max(0.15, min(1.0, confidence))
+
+
+def _compute_targets(points: list[float], current_wave: str,
+                     trend: str) -> tuple[tuple[float, float], float]:
+    """Compute Fibonacci target zone and invalidation level."""
+    if trend == "up":
+        if current_wave == "3" and len(points) >= 3:
+            w1 = points[1] - points[0]
+            t1 = points[2] + 1.618 * w1
+            t2 = points[2] + 1.0 * w1
+            return (min(t1, t2), max(t1, t2)), points[0]
+        elif current_wave == "4" and len(points) >= 4:
+            w3 = points[3] - points[2]
+            t = points[3] - 0.382 * w3
+            return (t * 0.99, t * 1.01), points[1]
+        elif current_wave == "5" and len(points) >= 5:
+            w1 = points[1] - points[0]
+            w1_to_w3 = points[3] - points[0]
+            t1 = points[4] + w1
+            t2 = points[4] + 0.618 * w1_to_w3
+            return (min(t1, t2), max(t1, t2)), points[3]
+        elif current_wave == "C" and len(points) >= 3:
+            a_len = points[0] - points[1]
+            t1 = points[2] - a_len
+            t2 = points[2] - 1.618 * a_len
+            return (min(t1, t2), max(t1, t2)), points[0]
+    else:
+        if current_wave == "3" and len(points) >= 3:
+            w1 = points[0] - points[1]
+            t1 = points[2] - 1.618 * w1
+            t2 = points[2] - 1.0 * w1
+            return (min(t1, t2), max(t1, t2)), points[0]
+        elif current_wave == "4" and len(points) >= 4:
+            w3 = points[2] - points[3]
+            t = points[3] + 0.382 * w3
+            return (t * 0.99, t * 1.01), points[1]
+        elif current_wave == "5" and len(points) >= 5:
+            w1 = points[0] - points[1]
+            w1_to_w3 = points[0] - points[3]
+            t1 = points[4] - w1
+            t2 = points[4] - 0.618 * w1_to_w3
+            return (min(t1, t2), max(t1, t2)), points[3]
+        elif current_wave == "C" and len(points) >= 3:
+            a_len = points[1] - points[0]
+            t1 = points[2] + a_len
+            t2 = points[2] + 1.618 * a_len
+            return (min(t1, t2), max(t1, t2)), points[0]
+
+    # Fallback
+    mid = points[-1] if points else 0
+    return (mid * 0.98, mid * 1.02), 0.0
+
+
+def _locate_wave(points: list[float], price: float, trend: str) -> str:
+    """Determine which wave price is currently in, given 6 impulse points."""
+    if len(points) < 6:
+        return "?"
+
+    if trend == "up":
+        if price > points[4]:
+            return "5"
+        elif price < points[3] and price > points[1]:
+            return "4"
+        elif price > points[2]:
+            return "3" if price > points[3] else "4"
+        else:
+            return "2"
+    else:
+        if price < points[4]:
+            return "5"
+        elif price > points[3] and price < points[1]:
+            return "4"
+        elif price < points[2]:
+            return "3" if price < points[3] else "4"
+        else:
+            return "2"
+
+
+def detect_elliott_wave(df: pd.DataFrame, tf: str) -> WaveAnalysis | None:
+    """Main EW detection: compute zigzag, fit patterns, return best match."""
+    cfg = EW_CONFIG[tf]
+    pivots = compute_zigzag(df, cfg["zigzag_pct"])
+
+    if len(pivots) < 5:
+        return None
+
+    current_price = float(df["close"].iloc[-1])
+    best: WaveAnalysis | None = None
+    best_conf = 0.0
+
+    # Try impulse patterns on sliding windows
+    for start in range(max(0, len(pivots) - 10), len(pivots) - 5):
+        segment = pivots[start:]
+        if len(segment) < 6:
+            continue
+
+        # Try impulse up (starts with low)
+        if segment[0].point_type == "low":
+            valid, conf = _validate_impulse(segment[:6], "up")
+            if valid and conf > best_conf:
+                pts = [pt.price for pt in segment[:6]]
+                wave = _locate_wave(pts, current_price, "up")
+                targets, inv = _compute_targets(pts, wave, "up")
+                direction = "bearish" if wave in ("4", "C") else "bullish"
+                best_conf = conf
+                best = WaveAnalysis(
+                    tf=tf, current_wave=wave, pattern_type="impulse_up",
+                    confidence="high" if conf >= 0.75 else "medium" if conf >= 0.5 else "low",
+                    confidence_score=conf, direction=direction,
+                    target_zone=targets, invalidation=inv,
+                    pivots=segment[:6], computed_at=time.time())
+
+        # Try impulse down (starts with high)
+        if segment[0].point_type == "high":
+            valid, conf = _validate_impulse(segment[:6], "down")
+            if valid and conf > best_conf:
+                pts = [pt.price for pt in segment[:6]]
+                wave = _locate_wave(pts, current_price, "down")
+                targets, inv = _compute_targets(pts, wave, "down")
+                direction = "bullish" if wave in ("4", "C") else "bearish"
+                best_conf = conf
+                best = WaveAnalysis(
+                    tf=tf, current_wave=wave, pattern_type="impulse_down",
+                    confidence="high" if conf >= 0.75 else "medium" if conf >= 0.5 else "low",
+                    confidence_score=conf, direction=direction,
+                    target_zone=targets, invalidation=inv,
+                    pivots=segment[:6], computed_at=time.time())
+
+    # Try ABC correction on last 4 pivots
+    if len(pivots) >= 4:
+        last4 = pivots[-4:]
+        if last4[0].point_type == "high":
+            valid, conf = _validate_correction(last4, "up")
+            if valid and conf > best_conf:
+                pts = [pt.price for pt in last4]
+                targets, inv = _compute_targets(pts, "C", "up")
+                best_conf = conf
+                best = WaveAnalysis(
+                    tf=tf, current_wave="C", pattern_type="correction_down",
+                    confidence="high" if conf >= 0.75 else "medium" if conf >= 0.5 else "low",
+                    confidence_score=conf, direction="bearish",
+                    target_zone=targets, invalidation=inv,
+                    pivots=last4, computed_at=time.time())
+        elif last4[0].point_type == "low":
+            valid, conf = _validate_correction(last4, "down")
+            if valid and conf > best_conf:
+                pts = [pt.price for pt in last4]
+                targets, inv = _compute_targets(pts, "C", "down")
+                best_conf = conf
+                best = WaveAnalysis(
+                    tf=tf, current_wave="C", pattern_type="correction_up",
+                    confidence="high" if conf >= 0.75 else "medium" if conf >= 0.5 else "low",
+                    confidence_score=conf, direction="bullish",
+                    target_zone=targets, invalidation=inv,
+                    pivots=last4, computed_at=time.time())
+
+    return best
+
+
+def detect_ew_events(analysis: WaveAnalysis | None, price: float,
+                     ew_state: dict) -> list[dict]:
+    """Detect notable EW events: wave change, fib target reached, invalidation."""
+    events: list[dict] = []
+    if analysis is None:
+        return events
+
+    now = datetime.now(timezone.utc)
+    last_ts = ew_state.get("last_alert_ts", "")
+    if last_ts:
+        elapsed = (now - datetime.fromisoformat(last_ts)).total_seconds()
+        if elapsed < DEBOUNCE_H * 3600:
+            # Still allow invalidation alerts through debounce
+            if analysis.invalidation > 0:
+                pattern_up = analysis.pattern_type.endswith("up") or analysis.pattern_type == "correction_down"
+                if (pattern_up and price < analysis.invalidation) or \
+                   (not pattern_up and price > analysis.invalidation):
+                    events.append({"type": "invalidated", "price": price,
+                                   "level": analysis.invalidation})
+                    ew_state["last_alert_ts"] = now.isoformat()
+            return events
+
+    prev_wave = ew_state.get("current_wave", "")
+    if analysis.current_wave != prev_wave and prev_wave != "":
+        events.append({"type": "wave_change", "from": prev_wave,
+                       "to": analysis.current_wave})
+
+    t_lo, t_hi = analysis.target_zone
+    if t_lo <= price <= t_hi:
+        if not ew_state.get("in_target", False):
+            events.append({"type": "fib_target", "zone": analysis.target_zone})
+            ew_state["in_target"] = True
+    else:
+        ew_state["in_target"] = False
+
+    if analysis.invalidation > 0:
+        pattern_up = analysis.pattern_type.endswith("up") or analysis.pattern_type == "correction_down"
+        if (pattern_up and price < analysis.invalidation) or \
+           (not pattern_up and price > analysis.invalidation):
+            events.append({"type": "invalidated", "price": price,
+                           "level": analysis.invalidation})
+
+    if events:
+        ew_state["last_alert_ts"] = now.isoformat()
+    ew_state["current_wave"] = analysis.current_wave
+    ew_state["pattern_type"] = analysis.pattern_type
+    ew_state["confidence"] = analysis.confidence
+
+    return events
+
+
 class LevelCache:
     def __init__(self):
         self._levels: dict[str, list[dict]] = {}
@@ -585,6 +1006,8 @@ class LevelCache:
         self._last_candle_ts: dict[str, float] = {}
         self._pivot_levels: list[dict] = []
         self._pivot_date: str = ""
+        self._ew: dict[str, WaveAnalysis | None] = {}
+        self._ew_last_ts: dict[str, float] = {}
 
     def get_levels(self, tf: str, price: float) -> list[dict]:
         now = time.time()
@@ -609,6 +1032,20 @@ class LevelCache:
 
     def get_order_blocks(self, tf: str) -> list[dict]:
         return self._obs.get(tf, [])
+
+    def get_elliott_wave(self, tf: str) -> WaveAnalysis | None:
+        if tf not in EW_TIMEFRAMES:
+            return None
+        now = time.time()
+        interval = EW_INTERVALS[tf]
+        if now - self._ew_last_ts.get(tf, 0) > interval:
+            try:
+                df = fetch_candles(tf, limit=EW_CONFIG[tf]["lookback"])
+                self._ew[tf] = detect_elliott_wave(df, tf)
+                self._ew_last_ts[tf] = now
+            except Exception:
+                pass
+        return self._ew.get(tf)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -848,6 +1285,37 @@ def build_ob_alert(events: list[dict], tf: str) -> str:
     return "\n\n".join(lines)
 
 
+def build_ew_alert(events: list[dict], analysis: WaveAnalysis, tf: str) -> str:
+    now_str = datetime.now(timezone.utc).strftime("%d/%m %H:%M")
+    p_emoji = "\U0001f4c8" if "up" in analysis.pattern_type else "\U0001f4c9"
+    pattern_label = analysis.pattern_type.replace("_", " ").title()
+
+    lines = [
+        f"{p_emoji} *ETH Elliott Wave* [{tf}]",
+        f"Pattern: {pattern_label}",
+        f"Wave: *{analysis.current_wave}* | Confidence: {analysis.confidence.upper()}",
+    ]
+
+    for ev in events:
+        if ev["type"] == "wave_change":
+            lines.append(f"\U0001f504 Wave: {ev['from']} \u2192 {ev['to']}")
+        elif ev["type"] == "fib_target":
+            lo, hi = ev["zone"]
+            lines.append(f"\U0001f3af Target zone reached: ${lo:,.1f}\u2013${hi:,.1f}")
+        elif ev["type"] == "invalidated":
+            lines.append(f"\u274c Count INVALIDATED @ ${ev['price']:,.1f}")
+
+    d_emoji = "\U0001f7e2" if analysis.direction == "bullish" else "\U0001f534"
+    t_lo, t_hi = analysis.target_zone
+    lines.append(f"\n{d_emoji} Next: {analysis.direction}")
+    lines.append(f"\U0001f3af Target: ${t_lo:,.1f}\u2013${t_hi:,.1f}")
+    if analysis.invalidation > 0:
+        lines.append(f"\U0001f6ab Invalidation: ${analysis.invalidation:,.1f}")
+    lines.append(f"_Informational only_")
+    lines.append(f"\U0001f4e1 {now_str}")
+    return "\n".join(lines)
+
+
 def build_fng_alert(fng: dict) -> str:
     now_str = datetime.now(timezone.utc).strftime("%d/%m %H:%M")
     val = fng["value"]
@@ -880,7 +1348,7 @@ def load_state() -> dict:
             return json.loads(STATE_FILE.read_text(encoding="utf-8"))
         except Exception:
             pass
-    return {"sr": {}, "ob": {}, "seen_news": [], "last_fng": 0}
+    return {"sr": {}, "ob": {}, "ew": {}, "seen_news": [], "last_fng": 0}
 
 
 def save_state(state: dict) -> None:
@@ -950,6 +1418,21 @@ def run(verbose: bool = False, once: bool = False) -> None:
                     for ev in ob_events:
                         print(f"  [{tf}] OB {ev['type']} @ ${ev['low']:.1f}–${ev['high']:.1f}")
                 send_tg(build_ob_alert(ob_events, tf))
+
+        # ── Elliott Wave (15m every 15min, 1H every 1h) ──────────────────
+        for tf in EW_TIMEFRAMES:
+            ew = cache.get_elliott_wave(tf)
+            if ew is not None:
+                ew_state = state.setdefault("ew", {}).setdefault(tf, {})
+                ew_events = detect_ew_events(ew, price, ew_state)
+                if ew_events:
+                    if verbose:
+                        print(f"  [EW {tf}] Wave {ew.current_wave} "
+                              f"({ew.confidence}) {ew.direction}")
+                    send_tg(build_ew_alert(ew_events, ew, tf))
+                elif verbose and ew_state.get("current_wave") != ew.current_wave:
+                    print(f"  [EW {tf}] Wave {ew.current_wave} "
+                          f"({ew.confidence}) — no alert (debounce)")
 
         # ── Market Context (every 5 min) ─────────────────────────────────
         if now - last_ctx > CONTEXT_INTERVAL:
@@ -1032,6 +1515,14 @@ def run(verbose: bool = False, once: bool = False) -> None:
                 d = (price - nearest_below["price"]) / nearest_below["price"] * 100
                 print(f"  HT ${nearest_below['price']:.1f} ({d:+.2f}%)", end="")
             print()
+            # EW summary
+            for tf in EW_TIMEFRAMES:
+                ew = cache.get_elliott_wave(tf)
+                if ew:
+                    t_lo, t_hi = ew.target_zone
+                    print(f"  [EW {tf}] Wave {ew.current_wave} "
+                          f"({ew.confidence}) {ew.direction} "
+                          f"target ${t_lo:.1f}-${t_hi:.1f}")
 
         prev_price = price
         save_state(state)

@@ -77,6 +77,7 @@ class Orchestrator:
         self._pair_strategies: dict[str, list[BaseStrategy]] = {}
         self._entry_filters = config.data.get("entry_filters", {})
         self._dp: Any = None
+        self._filter_blocked_last: dict[str, str] = {}  # debounce: key -> candle_time
 
     # ═══════════════════════════════════════════════════════════════════════════
     # INITIALIZATION
@@ -279,6 +280,14 @@ class Orchestrator:
             stake = max(stake, float(min_stake))
         return min(stake, max_stake)
 
+    def _should_log_filter(self, key: str, candle_time: Any) -> bool:
+        """Debounce filter logs: only log once per candle per filter key."""
+        ts = str(candle_time)
+        if self._filter_blocked_last.get(key) == ts:
+            return False
+        self._filter_blocked_last[key] = ts
+        return True
+
     def confirm_entry(
         self,
         pair: str,
@@ -302,6 +311,7 @@ class Orchestrator:
         if df.empty:
             return True
         last = df.iloc[-1]
+        _candle_time = last.get("date", current_time)
 
         # Volume sanity
         vol_ratio = float(last.get("vol_ratio", last.get("ra_vol_ratio", 1.0)))
@@ -326,27 +336,31 @@ class Orchestrator:
         if btc_ret is not None:
             btc_threshold = self._entry_filters.get("btc_ret3_threshold", 0.005)
             if side == "long" and btc_ret < -btc_threshold:
-                msg = f"[FILTER] {entry_tag} LONG blocked: BTC ret3={btc_ret*100:.2f}%"
-                logger.info(msg)
-                _send_tg(f"\U0001f6ab *{entry_tag}* LONG blocked\nBTC 3bar: {btc_ret*100:+.2f}%")
+                if self._should_log_filter(f"btc_ret3_long_{pair}", _candle_time):
+                    msg = f"[FILTER] {entry_tag} LONG blocked: BTC ret3={btc_ret*100:.2f}%"
+                    logger.info(msg)
+                    _send_tg(f"\U0001f6ab **{entry_tag}** LONG blocked\nBTC 3bar: {btc_ret*100:+.2f}%")
                 return False
             if side == "short" and btc_ret > btc_threshold:
-                msg = f"[FILTER] {entry_tag} SHORT blocked: BTC ret3={btc_ret*100:.2f}%"
-                logger.info(msg)
-                _send_tg(f"\U0001f6ab *{entry_tag}* SHORT blocked\nBTC 3bar: {btc_ret*100:+.2f}%")
+                if self._should_log_filter(f"btc_ret3_short_{pair}", _candle_time):
+                    msg = f"[FILTER] {entry_tag} SHORT blocked: BTC ret3={btc_ret*100:.2f}%"
+                    logger.info(msg)
+                    _send_tg(f"\U0001f6ab **{entry_tag}** SHORT blocked\nBTC 3bar: {btc_ret*100:+.2f}%")
                 return False
 
         # Funding rate extreme filter
         funding = float(last.get("funding_rate", 0.0))
         if side == "long" and funding > self._entry_filters.get("funding_long_max", 0.0005):
-            msg = f"[FILTER] {entry_tag} LONG blocked: funding={funding*100:.4f}%"
-            logger.info(msg)
-            _send_tg(f"\U0001f6ab *{entry_tag}* LONG blocked\nFunding: {funding*100:+.4f}%")
+            if self._should_log_filter(f"funding_long_{pair}", _candle_time):
+                msg = f"[FILTER] {entry_tag} LONG blocked: funding={funding*100:.4f}%"
+                logger.info(msg)
+                _send_tg(f"\U0001f6ab **{entry_tag}** LONG blocked\nFunding: {funding*100:+.4f}%")
             return False
         if side == "short" and funding < self._entry_filters.get("funding_short_min", -0.0005):
-            msg = f"[FILTER] {entry_tag} SHORT blocked: funding={funding*100:.4f}%"
-            logger.info(msg)
-            _send_tg(f"\U0001f6ab *{entry_tag}* SHORT blocked\nFunding: {funding*100:+.4f}%")
+            if self._should_log_filter(f"funding_short_{pair}", _candle_time):
+                msg = f"[FILTER] {entry_tag} SHORT blocked: funding={funding*100:.4f}%"
+                logger.info(msg)
+                _send_tg(f"\U0001f6ab **{entry_tag}** SHORT blocked\nFunding: {funding*100:+.4f}%")
             return False
 
         # Taker volume filter (volume_spike_rev only)
@@ -354,14 +368,16 @@ class Orchestrator:
             taker_buy_pct = self._get_taker_buy_pct(pair)
             if taker_buy_pct is not None:
                 if side == "short" and taker_buy_pct > 55:
-                    msg = f"[FILTER] vs_short blocked: taker_buy={taker_buy_pct:.1f}%"
-                    logger.info(msg)
-                    _send_tg(f"\U0001f6ab *vs_short* blocked\nTaker Buy: {taker_buy_pct:.0f}% (buyers dominant)")
+                    if self._should_log_filter(f"taker_short_{pair}", _candle_time):
+                        msg = f"[FILTER] vs_short blocked: taker_buy={taker_buy_pct:.1f}%"
+                        logger.info(msg)
+                        _send_tg(f"\U0001f6ab **vs_short** blocked\nTaker Buy: {taker_buy_pct:.0f}% (buyers dominant)")
                     return False
                 if side == "long" and taker_buy_pct < 45:
-                    msg = f"[FILTER] vs_long blocked: taker_buy={taker_buy_pct:.1f}%"
-                    logger.info(msg)
-                    _send_tg(f"\U0001f6ab *vs_long* blocked\nTaker Buy: {taker_buy_pct:.0f}% (sellers dominant)")
+                    if self._should_log_filter(f"taker_long_{pair}", _candle_time):
+                        msg = f"[FILTER] vs_long blocked: taker_buy={taker_buy_pct:.1f}%"
+                        logger.info(msg)
+                        _send_tg(f"\U0001f6ab **vs_long** blocked\nTaker Buy: {taker_buy_pct:.0f}% (sellers dominant)")
                     return False
 
         return True
