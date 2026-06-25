@@ -10,6 +10,7 @@ import urllib.parse
 from datetime import datetime
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from engine.config import AppConfig, StrategyConfig
@@ -288,6 +289,102 @@ class Orchestrator:
         self._filter_blocked_last[key] = ts
         return True
 
+    def _detect_wave_trend(self, df: pd.DataFrame) -> str:
+        """Detect wave context from price zigzag. Returns 'bullish'/'bearish'/'unclear'.
+        Used to block entries against the current wave structure."""
+        if len(df) < 60:
+            return "unclear"
+
+        highs = df["high"].astype(float).values
+        lows = df["low"].astype(float).values
+        n = len(highs)
+        threshold = 0.01  # 1% zigzag threshold
+
+        # Compute zigzag pivots
+        pivots: list[tuple[int, float, str]] = []  # (idx, price, "H"/"L")
+        last_h, last_h_idx = highs[0], 0
+        last_l, last_l_idx = lows[0], 0
+        direction = 0
+
+        for i in range(1, n):
+            if direction == 0:
+                if highs[i] > last_h:
+                    last_h, last_h_idx = highs[i], i
+                if lows[i] < last_l:
+                    last_l, last_l_idx = lows[i], i
+                if last_l > 0 and (last_h - last_l) / last_l >= threshold:
+                    if last_l_idx < last_h_idx:
+                        pivots.append((last_l_idx, last_l, "L"))
+                        direction = 1
+                    else:
+                        pivots.append((last_h_idx, last_h, "H"))
+                        direction = -1
+            elif direction == 1:
+                if highs[i] > last_h:
+                    last_h, last_h_idx = highs[i], i
+                if last_h > 0 and (last_h - lows[i]) / last_h >= threshold:
+                    pivots.append((last_h_idx, last_h, "H"))
+                    direction = -1
+                    last_l, last_l_idx = lows[i], i
+            else:
+                if lows[i] < last_l:
+                    last_l, last_l_idx = lows[i], i
+                if last_l > 0 and (highs[i] - last_l) / last_l >= threshold:
+                    pivots.append((last_l_idx, last_l, "L"))
+                    direction = 1
+                    last_h, last_h_idx = highs[i], i
+
+        if direction == 1:
+            pivots.append((last_h_idx, last_h, "H"))
+        elif direction == -1:
+            pivots.append((last_l_idx, last_l, "L"))
+
+        if len(pivots) < 4:
+            return "unclear"
+
+        # Check last 4 pivots for correction pattern
+        p = pivots[-4:]
+        prices = [pt[1] for pt in p]
+
+        # Correction UP (L-H-L-H): bounce in downtrend
+        if p[0][2] == "L" and p[1][2] == "H" and p[2][2] == "L" and p[3][2] == "H":
+            a_up = prices[1] - prices[0]
+            if a_up > 0 and prices[2] > prices[0] and prices[3] < prices[1]:
+                b_ret = (prices[1] - prices[2]) / a_up
+                if 0.2 <= b_ret <= 0.9:
+                    return "bullish"  # correction up = bearish for shorts
+
+        # Correction DOWN (H-L-H-L): pullback in uptrend
+        if p[0][2] == "H" and p[1][2] == "L" and p[2][2] == "H" and p[3][2] == "L":
+            a_down = prices[0] - prices[1]
+            if a_down > 0 and prices[2] < prices[0] and prices[3] > prices[1]:
+                b_ret = (prices[2] - prices[1]) / a_down
+                if 0.2 <= b_ret <= 0.9:
+                    return "bearish"  # correction down = bullish for longs
+
+        # Check impulse: last 6 pivots
+        if len(pivots) >= 6:
+            p6 = pivots[-6:]
+            prices6 = [pt[1] for pt in p6]
+            # Impulse UP (L-H-L-H-L-H with higher highs)
+            if p6[0][2] == "L" and prices6[5] > prices6[0]:
+                w1 = prices6[1] - prices6[0]
+                w3 = prices6[3] - prices6[2]
+                w5 = prices6[5] - prices6[4]
+                if w1 > 0 and w3 > 0 and w5 > 0:
+                    if not (w3 < w1 and w3 < w5):  # W3 not shortest
+                        return "bullish"
+            # Impulse DOWN (H-L-H-L-H-L with lower lows)
+            if p6[0][2] == "H" and prices6[5] < prices6[0]:
+                w1 = prices6[0] - prices6[1]
+                w3 = prices6[2] - prices6[3]
+                w5 = prices6[4] - prices6[5]
+                if w1 > 0 and w3 > 0 and w5 > 0:
+                    if not (w3 < w1 and w3 < w5):
+                        return "bearish"
+
+        return "unclear"
+
     def confirm_entry(
         self,
         pair: str,
@@ -323,6 +420,22 @@ class Orchestrator:
         close = float(last.get("close", 1))
         if atr > 0 and (atr / close) > self._entry_filters.get("atr_spike_max", 0.04):
             return False
+
+        # Wave trend filter: block entries against the wave structure
+        if self._entry_filters.get("wave_filter_enabled", True):
+            wave_trend = self._detect_wave_trend(df)
+            if side == "short" and wave_trend == "bullish":
+                if self._should_log_filter(f"wave_short_{pair}", _candle_time):
+                    logger.info(f"[FILTER] {entry_tag} SHORT blocked: wave=bullish")
+                    _send_tg(f"\U0001f6ab **{entry_tag}** SHORT blocked\n"
+                             f"Wave trend: bullish (correction up)")
+                return False
+            if side == "long" and wave_trend == "bearish":
+                if self._should_log_filter(f"wave_long_{pair}", _candle_time):
+                    logger.info(f"[FILTER] {entry_tag} LONG blocked: wave=bearish")
+                    _send_tg(f"\U0001f6ab **{entry_tag}** LONG blocked\n"
+                             f"Wave trend: bearish (correction down)")
+                return False
 
         # BTC sentiment gate (RSI)
         btc_rsi = float(last.get("btc_rsi_1h", 50))
